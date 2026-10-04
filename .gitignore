@@ -1,0 +1,16 @@
+# environment
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+
+# raw shared-Drive download (scripts/02_split_data.py builds data/{train,val,test} from it)
+data/raw/
+drive-download-*/
+Images/
+images_OBJ*/
+mapping_OBJ*.csv
+
+# Office lock files
+~$*

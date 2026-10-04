@@ -1,0 +1,57 @@
+{
+  "best_model": "EfficientNetB0",
+  "models": [
+    {
+      "model": "EfficientNetB0",
+      "params_M": 4.06,
+      "epochs_run": 15,
+      "best_val_acc": 0.9981,
+      "test_acc": 0.9925,
+      "test_top5": 0.9981,
+      "test_macro_precision": 0.9929,
+      "test_macro_recall": 0.9925,
+      "test_macro_f1": 0.9925,
+      "train_time_min": 11.98,
+      "inference_ms_per_img": 10.86
+    },
+    {
+      "model": "MobileNetV3",
+      "params_M": 4.25,
+      "epochs_run": 15,
+      "best_val_acc": 0.9944,
+      "test_acc": 0.9925,
+      "test_top5": 0.9963,
+      "test_macro_precision": 0.993,
+      "test_macro_recall": 0.9925,
+      "test_macro_f1": 0.9924,
+      "train_time_min": 7.65,
+      "inference_ms_per_img": 7.07
+    },
+    {
+      "model": "ResNet18",
+      "params_M": 11.2,
+      "epochs_run": 15,
+      "best_val_acc": 0.9944,
+      "test_acc": 0.9869,
+      "test_top5": 0.9963,
+      "test_macro_precision": 0.9877,
+      "test_macro_recall": 0.987,
+      "test_macro_f1": 0.9868,
+      "train_time_min": 8.43,
+      "inference_ms_per_img": 4.66
+    },
+    {
+      "model": "SimpleCNN",
+      "params_M": 1.18,
+      "epochs_run": 40,
+      "best_val_acc": 0.7065,
+      "test_acc": 0.6785,
+      "test_top5": 0.9252,
+      "test_macro_precision": 0.6912,
+      "test_macro_recall": 0.6784,
+      "test_macro_f1": 0.6644,
+      "train_time_min": 25.73,
+      "inference_ms_per_img": 4.27
+    }
+  ]
+}
