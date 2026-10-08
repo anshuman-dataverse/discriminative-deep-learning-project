@@ -1,0 +1,114 @@
+Ultralytics 8.4.174 🚀 Python-3.13.7 torch-2.14.1 MPS (Apple M4)
+Model summary (fused): 72 layers, 11,153,835 parameters, 0 gradients, 28.6 GFLOPs
+[34m[1mval: [0mFast image access ✅ (ping: 0.0±0.0 ms, read: 3331.8±1104.1 MB/s, size: 91.5 KB)
+[K[34m[1mval: [0mScanning /Users/anshumansingh/Documents/deep_learning/project_1/milestone2/data/multi/labels/test... 250 images, 0 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 250/250 6.1Kit/s 0.0s
+[34m[1mval: [0mNew cache created: /Users/anshumansingh/Documents/deep_learning/project_1/milestone2/data/multi/labels/test.cache
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 6% ╸─────────── 1/16 1.9s/it 0.6s<28.0s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 12% ━─────────── 2/16 1.1it/s 1.0s<12.5s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 18% ━━────────── 3/16 1.5it/s 1.4s<8.9s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 25% ━━━───────── 4/16 1.7it/s 1.8s<6.9s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 31% ━━━╸──────── 5/16 2.0it/s 2.2s<5.4s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 37% ━━━━──────── 6/16 2.2it/s 2.6s<4.5s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 43% ━━━━━─────── 7/16 2.4it/s 2.9s<3.8s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 50% ━━━━━━────── 8/16 2.5it/s 3.3s<3.3s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 56% ━━━━━━╸───── 9/16 2.5it/s 3.7s<2.8s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 62% ━━━━━━━───── 10/16 2.5it/s 4.1s<2.4s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 68% ━━━━━━━━──── 11/16 2.5it/s 4.5s<2.0s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 75% ━━━━━━━━━─── 12/16 2.5it/s 4.9s<1.6s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 81% ━━━━━━━━━╸── 13/16 2.5it/s 5.3s<1.2s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 87% ━━━━━━━━━━── 14/16 2.4it/s 5.8s<0.8s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 93% ━━━━━━━━━━━─ 15/16 2.3it/s 6.2s<0.4s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 16/16 2.4it/s 6.6s
+                   all        250        941      0.968       0.93      0.981      0.978
+                OBJ001         12         12      0.983          1      0.995      0.995
+                OBJ002         13         13      0.984          1      0.995      0.995
+                OBJ003         13         13      0.849      0.863       0.97       0.97
+                OBJ004         13         13      0.922      0.906       0.98       0.98
+                OBJ005         13         13          1       0.84      0.964      0.964
+                OBJ006         13         13      0.985          1      0.995      0.976
+                OBJ007         13         13       0.98      0.923       0.96      0.948
+                OBJ008         13         13      0.985          1      0.995      0.995
+                OBJ009         13         13      0.971          1      0.995      0.995
+                OBJ010         13         13      0.975      0.923      0.958      0.958
+                OBJ011         13         13          1      0.871       0.99       0.99
+                OBJ012         13         13          1      0.699      0.995      0.995
+                OBJ013         13         13      0.816      0.692      0.864      0.864
+                OBJ014         13         13          1      0.827      0.949      0.937
+                OBJ015         13         13          1      0.874       0.99       0.99
+                OBJ016         13         13          1      0.712      0.986      0.986
+                OBJ017         13         13          1      0.748      0.982      0.982
+                OBJ018         13         13      0.985          1      0.995      0.995
+                OBJ019         13         13      0.986          1      0.995      0.995
+                OBJ020         13         13      0.919      0.874      0.979      0.979
+                OBJ021         12         12      0.985          1      0.995      0.995
+                OBJ022         13         13      0.923      0.928       0.99       0.99
+                OBJ023         13         13      0.986          1      0.995      0.984
+                OBJ024         13         13      0.985          1      0.995      0.995
+                OBJ025         13         13      0.951      0.923      0.965      0.953
+                OBJ026         12         12      0.893          1      0.995      0.995
+                OBJ027         13         13          1      0.951      0.995      0.995
+                OBJ028         13         13      0.986          1      0.995      0.995
+                OBJ029         13         13       0.92          1      0.995      0.995
+                OBJ030         13         13      0.905          1       0.99      0.975
+                OBJ031         13         13      0.968          1      0.995      0.995
+                OBJ032         13         13      0.984          1      0.995      0.995
+                OBJ033         13         13      0.985          1      0.995       0.98
+                OBJ034         13         13      0.977      0.692       0.91       0.91
+                OBJ035         13         13      0.916          1      0.995      0.995
+                OBJ036         13         13      0.923      0.928       0.99       0.99
+                OBJ037         13         13          1      0.985      0.995      0.995
+                OBJ038         13         13          1      0.855      0.995      0.995
+                OBJ039         13         13      0.986          1      0.995      0.971
+                OBJ040         13         13       0.99          1      0.995      0.995
+                OBJ041         13         13      0.985          1      0.995      0.995
+                OBJ042         13         13          1      0.913       0.99       0.99
+                OBJ043         13         13      0.985          1      0.995      0.978
+                OBJ044         13         13          1       0.81      0.953      0.953
+                OBJ045         12         12      0.919          1      0.995      0.969
+                OBJ046         13         13      0.978      0.923       0.99       0.99
+                OBJ047         13         13       0.98          1      0.995      0.981
+                OBJ048         13         13      0.984          1      0.995      0.995
+                OBJ049         13         13          1      0.849      0.995      0.995
+                OBJ050         13         13          1      0.994      0.995      0.995
+                OBJ051         13         13          1      0.941      0.995      0.995
+                OBJ052         13         13       0.98      0.846      0.969      0.969
+                OBJ053         13         13      0.985          1      0.995      0.995
+                OBJ054         12         12      0.992      0.917      0.989      0.989
+                OBJ055         13         13      0.977          1      0.995      0.995
+                OBJ056         13         13          1      0.931      0.995      0.995
+                OBJ057         12         12      0.907      0.833      0.959      0.959
+                OBJ058         13         13      0.984          1      0.995      0.946
+                OBJ059         13         13      0.919       0.87      0.944      0.944
+                OBJ060         12         12      0.991      0.917      0.961      0.961
+                OBJ061         12         12      0.891       0.75      0.885      0.885
+                OBJ062         13         13      0.893      0.846      0.907      0.907
+                OBJ063         13         13      0.986          1      0.995      0.995
+                OBJ064         13         13      0.991          1      0.995      0.995
+                OBJ065         13         13      0.972      0.846      0.943      0.943
+                OBJ066         13         13      0.995          1      0.995      0.995
+                OBJ067         13         13      0.985          1      0.995      0.995
+                OBJ068         13         13      0.911      0.769      0.933      0.933
+                OBJ069         13         13      0.959          1      0.995      0.995
+                OBJ070         13         13      0.985      0.923      0.961      0.961
+                OBJ071         13         13      0.985          1      0.995      0.995
+                OBJ072         13         13       0.99          1      0.995      0.995
+                OBJ073         13         13      0.986          1      0.995      0.995
+Speed: 0.2ms preprocess, 3.6ms inference, 0.0ms loss, 16.6ms postprocess per image
+Results saved to [1m/Users/anshumansingh/Documents/deep_learning/project_1/milestone2/runs/test_eval[0m
+======================================================================
+TEST SET EVALUATION (250 images, 941 objects)
+======================================================================
+mAP@0.5        0.9806
+mAP@0.5:0.95   0.9775
+Precision      0.9685
+Recall         0.9300
+Best F1        0.9467 at confidence 0.768
+Inference      3.6 ms/image
+======================================================================
+AT CONFIDENCE 0.5
+======================================================================
+Correct ID and location    888 / 941  (94.4%)
+Located, wrong ID           22
+Missed                      31
+False alarms                 0
+Fully correct images       201 / 250  (80.4%)
+layout      images  objects  obj. acc.  image acc.
+collage         59      214      93.0%       78.0%
+grid            53      223      93.7%       73.6%
+scatter        138      504      95.2%       84.1%
+======================================================================
+LOWEST AP@0.5 CLASSES
+======================================================================
+object_id  precision  recall   AP50  AP50-95
+   OBJ013     0.8164  0.6923 0.8642   0.8642
+   OBJ061     0.8913  0.7500 0.8847   0.8847
+   OBJ062     0.8933  0.8462 0.9069   0.9069
+   OBJ034     0.9769  0.6923 0.9104   0.9104
+   OBJ068     0.9110  0.7692 0.9333   0.9333
+======================================================================
+Saved results/test_metrics.json, per_class_ap.csv, test_errors.json; screenshots/example_detections.jpg, failure_cases.jpg
