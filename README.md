@@ -16,6 +16,7 @@ A deep learning system that (1) identifies the object in a single-object image b
 |---|---|---|---|
 | [Milestone 1](milestone1/) | Single-object identification with CNNs | Done | [PDF](milestone1/report/Milestone1_Report.pdf) |
 | [Milestone 2](milestone2/) | Multi-object detection and localization with YOLOv8 | Done | [PDF](milestone2/report/Milestone2_Report.pdf) |
+| [Milestone 3](website/) | Live demo: identify a single object; detect, identify and locate all objects | Live | [ie7615-group1-object-detection.vercel.app](https://ie7615-group1-object-detection.vercel.app) |
 
 ---
 
@@ -147,3 +148,23 @@ python scripts/04_detect.py data/multi/images/test/test_0003.jpg   # IDs + boxes
 
 To rebuild everything, put the extracted shared-Drive download in `milestone2/data/raw/` and run `00` to `03` in order. Training takes about 2 hours on an Apple M4.
 
+---
+
+## Milestone 3: Live demo website
+
+**https://ie7615-group1-object-detection.vercel.app**
+
+Both trained models run in the visitor's browser with ONNX Runtime Web (WebGPU on the GPU, WebAssembly on the CPU otherwise), so there is no server and uploaded photos never leave the device.
+
+- **Detect objects:** upload, paste or photograph a multi-object image, or pick a held-out test image; every object gets a box with its Object ID and confidence, and test images are scored correct or wrong.
+- **Identify object:** the EfficientNet-B0 classifier gives the Object ID of a single-object photo with its top-5.
+- **Build a scene:** choose objects and a layout; the browser composes a scene like the training data and runs the detector.
+- **Metrics, Method, Objects:** results of both milestones, the pipeline, and all 73 objects.
+
+`milestone2/scripts/05_export_web.py` exports both models to ONNX (checked against PyTorch on test images) and the results into `website/`. To run the site locally:
+
+```bash
+cd website
+npm install
+npm run dev        # http://localhost:3000
+```
