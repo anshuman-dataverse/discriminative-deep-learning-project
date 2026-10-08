@@ -72,6 +72,11 @@ export function DetectPanel() {
   ];
   const correct = scored ? [...scored.status.values()].filter((s) => s === "correct").length : 0;
   const composites = samples.composites.filter((c) => layout === "all" || c.layout === layout);
+  const preview = samples.composites.find((c) => c.layout === "collage") ?? samples.composites[0];
+  const runSample = async (c: (typeof samples.composites)[number]) => {
+    setActiveSample(c.id);
+    run(await loadFromUrl(c.src), parseYoloLabels(c.labels, 640, classes.detector));
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
@@ -89,10 +94,15 @@ export function DetectPanel() {
             boxes={boxes}
             busy={busy}
             empty={
-              <div className="px-6 text-center text-sm text-ink-2">
-                <ScanSearch className="mx-auto mb-3 h-8 w-8 text-muted" />
-                Pick a test image below, or upload a photo with several of the class objects in it.
-              </div>
+              <button onClick={() => runSample(preview)} className="group relative h-full w-full" aria-label="Detect objects in a held-out test image">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={preview.src} alt="" className="h-full w-full object-cover opacity-45 transition group-hover:opacity-60" />
+                <span className="absolute inset-0 grid place-items-center">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-ink px-4 py-2 text-sm font-medium text-page shadow-[0_10px_30px_var(--glow)]">
+                    <ScanSearch className="h-4 w-4" /> Detect objects in this test image
+                  </span>
+                </span>
+              </button>
             }
           />
         </ImageInput>
@@ -116,10 +126,7 @@ export function DetectPanel() {
             {composites.map((c) => (
               <button
                 key={c.id}
-                onClick={async () => {
-                  setActiveSample(c.id);
-                  run(await loadFromUrl(c.src), parseYoloLabels(c.labels, 640, classes.detector));
-                }}
+                onClick={() => runSample(c)}
                 className={`overflow-hidden rounded-md border transition ${activeSample === c.id ? "border-series-1 ring-2 ring-series-1" : "border-line hover:opacity-80"}`}
                 aria-label={`Test image ${c.id} (${c.layout})`}
               >

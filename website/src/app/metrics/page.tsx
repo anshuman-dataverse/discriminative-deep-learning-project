@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Bars, EpochLines } from "@/components/charts";
-import { Figure, Section, StatTile } from "@/components/ui";
+import { Figure, PageHeader, Section, StatTile } from "@/components/ui";
 import { m1, metrics, pct, training } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Metrics" };
@@ -31,12 +31,10 @@ export default function MetricsPage() {
   const hardest = Object.entries(m1.per_class_f1).sort((a, b) => a[1] - b[1]).slice(0, 5);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
-      <p className="text-sm font-medium text-brand">Results</p>
-      <h1 className="mt-2 text-4xl font-semibold tracking-tight">Metrics</h1>
-      <p className="mt-3 max-w-2xl text-ink-2">
+    <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <PageHeader kicker="Results" title={<>Measured on <span className="font-serif font-normal italic text-gradient">held-out</span> data</>}>
         Every number on this page is computed on held-out test data that played no part in training or model selection.
-      </p>
+      </PageHeader>
 
       <Section title="Multi-object detection (YOLOv8s)" kicker="Milestone 2" id="detector">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">

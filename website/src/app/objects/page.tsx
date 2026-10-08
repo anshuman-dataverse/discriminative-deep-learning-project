@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { Reveal } from "@/components/motion";
+import { ObjectsGallery } from "@/components/objects-gallery";
+import { PageHeader } from "@/components/ui";
 import { m1, metrics, objectIds, samples } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Objects" };
@@ -6,15 +9,14 @@ export const metadata: Metadata = { title: "Objects" };
 export default function ObjectsPage() {
   const ap = Object.fromEntries(metrics.per_class.map((r) => [r.object_id, r.AP50]));
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
-      <p className="text-sm font-medium text-brand">Dataset</p>
-      <h1 className="mt-2 text-4xl font-semibold tracking-tight">All 73 objects</h1>
-      <p className="mt-3 max-w-2xl text-ink-2">
+    <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <PageHeader kicker="Dataset" title={<>All <span className="font-serif font-normal italic text-gradient">73</span> objects</>}>
         Held-out test photos of every object in the class dataset, with the detector&apos;s test AP@0.5 and the classifier&apos;s test F1 for that object.
-      </p>
-      <ul className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-        {objectIds.map((id) => (
-          <li key={id} className="overflow-hidden rounded-xl border border-line bg-surface">
+      </PageHeader>
+      <ObjectsGallery />
+      <ul className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        {objectIds.map((id, i) => (
+          <Reveal as="li" key={id} delay={(i % 4) * 0.05} y={20} className="overflow-hidden rounded-xl border border-line bg-surface transition-[transform,border-color,box-shadow] duration-300 hover:-translate-y-1 hover:border-line-strong hover:shadow-[0_18px_40px_-18px_var(--glow)]">
             <div className="grid grid-cols-3 gap-px bg-line">
               {samples.singles[id].map((src) => (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -28,7 +30,7 @@ export default function ObjectsPage() {
                 {m1.per_class_f1[id] !== undefined && ` · F1 ${m1.per_class_f1[id].toFixed(2)}`}
               </span>
             </div>
-          </li>
+          </Reveal>
         ))}
       </ul>
     </div>

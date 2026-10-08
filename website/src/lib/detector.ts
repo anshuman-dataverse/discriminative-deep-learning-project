@@ -4,10 +4,12 @@ import { createSession, loadOrt, type Backend } from "./ort";
 export const DETECTOR_SIZE = 640;
 const IOU_NMS = 0.7;
 const MAX_DET = 50;
+const SHOW_CONFIDENCE = 0.5;
+const SMALL_FILL = 0.6;
 
 export type Box = { x1: number; y1: number; x2: number; y2: number };
 export type Detection = Box & { classIndex: number; label: string; confidence: number };
-export type DetectResult = { detections: Detection[]; ms: number; backend: Backend };
+export type DetectResult = { detections: Detection[]; ms: number; backend: Backend; rescaled: boolean };
 
 let loaded: Promise<{ session: InferenceSession; backend: Backend }> | null = null;
 
@@ -21,9 +23,9 @@ export function loadDetector(onProgress?: (f: number) => void) {
 
 type Letterbox = { data: Float32Array; scale: number; padX: number; padY: number };
 
-function letterbox(source: CanvasImageSource, width: number, height: number): Letterbox {
+function letterbox(source: CanvasImageSource, width: number, height: number, fill = 1): Letterbox {
   const size = DETECTOR_SIZE;
-  const scale = Math.min(size / width, size / height);
+  const scale = Math.min(size / width, size / height) * fill;
   const w = Math.round(width * scale);
   const h = Math.round(height * scale);
   const padX = (size - w) / 2;
@@ -52,15 +54,16 @@ export function iou(a: Box, b: Box): number {
   return union > 0 ? inter / union : 0;
 }
 
-export async function detect(
+async function runPass(
   source: CanvasImageSource,
   width: number,
   height: number,
   classes: string[],
-  minConfidence = 0.25,
-): Promise<DetectResult> {
+  minConfidence: number,
+  fill: number,
+): Promise<{ detections: Detection[]; ms: number; backend: Backend }> {
   const [{ session, backend }, ort] = await Promise.all([loadDetector(), loadOrt()]);
-  const lb = letterbox(source, width, height);
+  const lb = letterbox(source, width, height, fill);
   const t0 = performance.now();
   const input = new ort.Tensor("float32", lb.data, [1, 3, DETECTOR_SIZE, DETECTOR_SIZE]);
   const out = (await session.run({ [session.inputNames[0]]: input }))[session.outputNames[0]];
@@ -101,6 +104,20 @@ export async function detect(
     if (kept.length >= MAX_DET) break;
   }
   return { detections: kept, ms, backend };
+}
+
+export async function detect(
+  source: CanvasImageSource,
+  width: number,
+  height: number,
+  classes: string[],
+  minConfidence = 0.25,
+): Promise<DetectResult> {
+  const full = await runPass(source, width, height, classes, minConfidence, 1);
+  if (full.detections.some((d) => d.confidence >= SHOW_CONFIDENCE)) return { ...full, rescaled: false };
+  const small = await runPass(source, width, height, classes, minConfidence, SMALL_FILL);
+  if (!small.detections.some((d) => d.confidence >= SHOW_CONFIDENCE)) return { ...full, rescaled: false };
+  return { ...small, ms: full.ms + small.ms, rescaled: true };
 }
 
 export function parseYoloLabels(text: string, size: number, classes: string[]) {

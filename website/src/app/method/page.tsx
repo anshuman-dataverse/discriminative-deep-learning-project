@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Figure, Section } from "@/components/ui";
+import { Reveal } from "@/components/motion";
+import { Figure, PageHeader, Section } from "@/components/ui";
 import { metrics, samples } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Method" };
@@ -31,18 +32,18 @@ export default function MethodPage() {
   const leak = d.leakage_check as Record<string, number>;
   const example = samples.composites.find((c) => c.layout === "collage") ?? samples.composites[0];
   return (
-    <div className="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
-      <p className="text-sm font-medium text-brand">How it was built</p>
-      <h1 className="mt-2 text-4xl font-semibold tracking-tight">Method</h1>
+    <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <PageHeader kicker="How it was built" title={<>From photos to a <span className="font-serif font-normal italic text-gradient">live detector</span></>} />
 
       <Section title="Pipeline">
-        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
+        <ol className="relative grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
+          <span aria-hidden className="pointer-events-none absolute inset-x-6 top-[1.6rem] hidden h-px bg-gradient-to-r from-brand via-brand-2 to-brand opacity-50 lg:block" />
           {STEPS.map((s, i) => (
-            <li key={s.t} className="relative rounded-xl border border-line bg-surface p-4">
-              <span className="tabular text-xs font-semibold text-brand">{String(i + 1).padStart(2, "0")}</span>
+            <Reveal as="li" key={s.t} delay={i * 0.07} y={24} className="relative rounded-xl border border-line bg-surface p-4 transition-[transform,border-color] duration-300 hover:-translate-y-1 hover:border-line-strong">
+              <span className="tabular relative inline-grid h-7 w-7 place-items-center rounded-full border border-line-strong bg-surface-2 text-[11px] font-semibold text-brand">{String(i + 1).padStart(2, "0")}</span>
               <p className="mt-1 font-semibold">{s.t}</p>
               <p className="mt-1 text-xs leading-relaxed text-ink-2">{s.d}</p>
-            </li>
+            </Reveal>
           ))}
         </ol>
       </Section>
