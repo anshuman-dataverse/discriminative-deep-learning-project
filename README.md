@@ -15,7 +15,7 @@ A deep learning system that (1) identifies the object in a single-object image b
 | Milestone | Task | Status | Report |
 |---|---|---|---|
 | [Milestone 1](milestone1/) | Single-object identification with CNNs | Done | [PDF](milestone1/report/Milestone1_Report.pdf) |
-| Milestone 2 | Multi-object detection and localization with YOLOv8 | Next | |
+| [Milestone 2](milestone2/) | Multi-object detection and localization with YOLOv8 | Done | [PDF](milestone2/report/Milestone2_Report.pdf) |
 
 ---
 
@@ -89,3 +89,58 @@ python milestone1/scripts/02_split_data.py
 ```
 
 The notebooks in `milestone1/notebooks/` run the same pipeline step by step, with error analysis and a live demo. Notebook 02 skips models that are already trained; set `RETRAIN = True` to retrain. Training runs on CUDA, Apple MPS or CPU, and a full retrain takes about 55 minutes on an Apple M4.
+
+---
+
+## Milestone 2: Multi-object detection and localization
+
+A COCO-pretrained YOLOv8s was fine-tuned on 1,700 generated multi-object images covering all **73 objects** (final Object IDs). Given an image, it returns the Object ID, confidence and bounding box of every object.
+
+| Metric (250 test images, 941 objects) | Value |
+|---|---|
+| mAP@0.5 | **0.981** |
+| mAP@0.5:0.95 | 0.978 |
+| Precision / Recall | 0.969 / 0.930 |
+| Objects with correct ID and location (conf ≥ 0.5) | 94.4% (0 false alarms) |
+| Images with every object correct | 80.4% |
+| Inference | 3.6 ms / image |
+
+How the multi-object images are built:
+
+- **Sources:** the full shared Drive (73 classes) is cleaned and split 70/15/15 per class with the Milestone 1 pipeline. Background-only photos are split the same way.
+- **Composition:** 2–6 randomly chosen objects (no class twice) are pasted onto a background photo from the same split: scattered at random sizes (50%), concatenated into a 2×2 / 3×3 grid (25%), or packed into a collage where photos touch or overlap slightly (25%), with flip and colour augmentation.
+- **Labels:** YOLO boxes are written automatically from the paste positions; `manifest.csv` records every source photo.
+- **Checks:** each split uses only its own source photos; a path and image-fingerprint check confirms that no photo appears in more than one split, and every label is validated.
+
+### Structure
+
+```
+milestone2/
+├── data/
+│   ├── singles/{train,val,test}/OBJ###/   4,886 / 1,028 / 1,028 single-object images
+│   ├── singles/backgrounds/               373 background-only photos
+│   └── multi/                             images/, labels/ (1,200 / 250 / 250), data.yaml, manifest.csv
+├── models/                                yolov8s_best.pt
+├── report/                                Milestone2_Report.pdf, Milestone2_Report.md
+├── results/                               test_metrics.json, per_class_ap.csv, dataset_stats.json, curves
+├── runs/yolov8s/                          Ultralytics training logs and plots
+├── screenshots/                           figures used in the report
+└── scripts/
+    ├── 00_prepare_singles.py              clean and split the full Drive download
+    ├── 01_make_multi_object.py            generate multi-object images + YOLO labels
+    ├── 02_train_yolo.py                   fine-tune YOLOv8s
+    ├── 03_evaluate_yolo.py                test metrics, example detections
+    ├── 04_detect.py                       detect objects in new images
+    ├── 05_export_web.py                   export models (ONNX) and results for the website
+    ├── 06_report_figures.py               render console outputs as report figures
+    └── detector/                          shared code: compose, evaluate, plots
+```
+
+### Usage
+
+```bash
+cd milestone2
+python scripts/04_detect.py data/multi/images/test/test_0003.jpg   # IDs + boxes, annotated copy in runs/detect/
+```
+
+To rebuild everything, put the extracted shared-Drive download in `milestone2/data/raw/` and run `00` to `03` in order. Training takes about 2 hours on an Apple M4.
