@@ -1,0 +1,79 @@
+
+test_0000.jpg: 3 object(s)
+  Object ID   conf   x1    y1    x2    y2   status
+  OBJ068      0.91   194    40   437   295   correct
+  OBJ018      1.00   406   113   631   341   correct
+  OBJ037      0.80    10   268   196   463   WRONG
+  missed: OBJ060
+
+test_0001.jpg: 4 object(s)
+  Object ID   conf   x1    y1    x2    y2   status
+  OBJ063      0.99   371    44   628   301   correct
+  OBJ052      0.99    20    81   233   296   correct
+  OBJ039      0.95   430   370   586   535   correct
+  OBJ021      1.00   141   439   319   616   correct
+
+test_0002.jpg: 2 object(s)
+  Object ID   conf   x1    y1    x2    y2   status
+  OBJ058      0.99   341   240   554   453   correct
+  OBJ023      0.79    93   484   233   624   correct
+
+test_0003.jpg: 4 object(s)
+  Object ID   conf   x1    y1    x2    y2   status
+  OBJ049      0.99    17     7   193   184   correct
+  OBJ007      1.00   184    54   445   293   correct
+  OBJ054      0.99   416   141   629   354   correct
+  OBJ072      0.99   177   293   486   623   correct
+
+test_0004.jpg: 3 object(s)
+  Object ID   conf   x1    y1    x2    y2   status
+  OBJ050      0.99   406   160   615   370   correct
+  OBJ032      0.99   156   220   378   442   correct
+  OBJ064      1.00   433   405   578   531   correct
+
+test_0005.jpg: 6 object(s)
+  Object ID   conf   x1    y1    x2    y2   status
+  OBJ008      0.99   388    26   582   218   correct
+  OBJ028      0.99    73    31   270   229   correct
+  OBJ045      0.96   218   185   422   390   correct
+  OBJ014      1.00   418   258   595   418   correct
+  OBJ038      0.99   101   352   286   536   correct
+  OBJ056      0.99   352   408   555   611   correct
+
+test_0006.jpg: 2 object(s)
+  Object ID   conf   x1    y1    x2    y2   status
+  OBJ029      0.98   293   168   465   341   correct
+  OBJ015      0.79    12   208   318   514   correct
+
+test_0007.jpg: 4 object(s)
+  Object ID   conf   x1    y1    x2    y2   status
+  OBJ057      0.95   104    14   320   258   correct
+  OBJ048      0.99   341   128   587   427   correct
+  OBJ059      0.99    55   274   264   495   correct
+  OBJ024      1.00   440   440   615   615   correct
+
+test_0008.jpg: 5 object(s)
+  Object ID   conf   x1    y1    x2    y2   status
+  OBJ066      0.99   387    22   548   162   correct
+  OBJ070      0.99   119    55   260   196   correct
+  OBJ010      0.99   401   180   594   373   correct
+  OBJ036      1.00   122   219   389   484   correct
+  OBJ017      0.99   383   492   530   640   correct
+
+test_0009.jpg: 4 object(s)
+  Object ID   conf   x1    y1    x2    y2   status
+  OBJ035      0.99   363     7   622   258   correct
+  OBJ026      0.99    31   121   216   311   correct
+  OBJ069      0.99   217   247   420   448   correct
+  OBJ003      0.99    23   300   244   522   correct
+
+======================================================================
+DETECTION SUMMARY
+======================================================================
+Images processed          10
+Objects detected          37
+Average objects / image   3.7
+Average confidence        97.07%
+Correct detections        36 / 37
+Missed objects            1 / 37
+Annotated images saved to /Users/anshumansingh/Documents/deep_learning/project_1/milestone2/runs/detect/
