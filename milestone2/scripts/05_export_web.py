@@ -3,8 +3,6 @@
 The detector (YOLOv8s) and the classifier (milestone 1 EfficientNet-B0) are exported to ONNX and
 checked against PyTorch on test images before anything is written. Then metrics, training history,
 class list, sample test images and single-object photos are copied into the site.
-
-    python scripts/05_export_web.py
 """
 import argparse
 import csv
@@ -136,7 +134,6 @@ def main():
         print(f"WARNING: classifier has {len(cls_classes)} classes, detector {len(det_classes)}; "
               "retrain milestone 1 on the 73-class split")
 
-    # sample test composites (8 per layout) with their labels
     manifest = pd.read_csv(DATA / "multi" / "manifest.csv")
     test = manifest[manifest.split == "test"].drop_duplicates("image")
     samples = []
@@ -147,7 +144,6 @@ def main():
             labels = (DATA / "multi" / "labels" / "test" / f"{stem}.txt").read_text()
             samples.append({"id": stem, "layout": layout, "src": f"/samples/{stem}.jpg", "labels": labels})
 
-    # single-object test photos (3 per class; the first is the class thumbnail) and test backgrounds
     singles = {}
     shutil.rmtree(public / "singles", ignore_errors=True)
     for d in sorted((DATA / "singles" / "test").iterdir()):

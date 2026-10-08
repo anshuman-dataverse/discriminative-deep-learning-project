@@ -13,7 +13,6 @@ export const metadata: Metadata = {
     "IE 7615 Discriminative Deep Learning, Group 1: identify a single object and detect, identify and locate every object in a multi-object image, live in the browser.",
 };
 
-// Apply the saved or system theme before paint to avoid a flash.
 const themeScript = `try{var t=localStorage.getItem("theme");if(!t)t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

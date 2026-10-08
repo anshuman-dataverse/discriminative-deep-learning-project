@@ -1,4 +1,3 @@
-// Copy the onnxruntime-web runtime into public/ort so the models run without a CDN.
 import { cpSync, mkdirSync, readdirSync } from "node:fs";
 
 const src = "node_modules/onnxruntime-web/dist";

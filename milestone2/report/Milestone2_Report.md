@@ -306,7 +306,7 @@ We built a 1,700-image multi-object dataset from the 73-object class collection,
 - **Layout variety pays off:** compared with our first run without the collage layout (mAP@0.5 0.973, image accuracy 78.0%, 2 false alarms on its own 250-image test set), the final model scores 0.981, 80.4% and 0 false alarms, while its test set is harder because a quarter of it has touching or overlapping objects. The two test sets differ, so this comparison is indicative rather than exact.
 - **Remaining errors are hard photos:** 65 of 73 classes have AP@0.5 ≥ 0.95, and no class is below 0.80. Most errors are partly covered photos or wide scenes where the object is small.
 
-## 10. Deliverables and reproducibility
+## 10. Deliverables
 
 | **File** | **Purpose** |
 |----|----|
@@ -314,7 +314,7 @@ We built a 1,700-image multi-object dataset from the 73-object class collection,
 | scripts/01_make_multi_object.py | Generate the multi-object images, YOLO labels and manifest; split and label checks |
 | scripts/02_train_yolo.py | Fine-tune pretrained YOLOv8s |
 | scripts/03_evaluate_yolo.py | Test metrics, per-layout accuracy, class tiers, curves, example detections and failure cases |
-| scripts/04_detect.py | Detect objects in new images: python scripts/04_detect.py image.jpg |
+| scripts/04_detect.py | Detect, identify and locate the objects in new images |
 | scripts/05_export_web.py | Export the models to ONNX (checked against PyTorch) and the results for the demo website |
 | scripts/06_report_figures.py | Render the console outputs used as figures in this report |
 | scripts/detector/ | Shared code: composition, evaluation, drawing |
@@ -323,5 +323,3 @@ We built a 1,700-image multi-object dataset from the 73-object class collection,
 | models/yolov8s_best.pt | Trained detector (best validation epoch) |
 | runs/ | Ultralytics training and evaluation logs and plots |
 | results/ | test_metrics.json, per_class_ap.csv, test_errors.json, test_per_image.csv, dataset_stats.json, curves and confusion matrix |
-
-Run the scripts from milestone2/ in order (00 to 03). The generated data and trained model are included, so scripts/04_detect.py works straight after cloning.

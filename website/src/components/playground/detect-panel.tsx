@@ -12,7 +12,6 @@ import { useModel } from "./use-model";
 type Truth = ReturnType<typeof parseYoloLabels>;
 const LAYOUTS = ["all", "scatter", "grid", "collage"] as const;
 
-/** Greedy match by confidence, as in milestone2/scripts/detector/evaluate.py match_image. */
 export function score(dets: Detection[], truth: Truth) {
   const free = new Set(truth.map((_, i) => i));
   const status = new Map<Detection, "correct" | "wrong">();

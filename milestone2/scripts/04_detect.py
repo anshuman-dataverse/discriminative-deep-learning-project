@@ -2,8 +2,6 @@
 
 If an image has a YOLO label file (images/<split>/x.jpg -> labels/<split>/x.txt), each detection is also
 marked correct or wrong, and missed objects are listed. A summary closes the run.
-
-    python scripts/04_detect.py path/to/image.jpg [more.jpg | folder/] [--conf 0.5] [--limit 10]
 """
 import argparse
 from pathlib import Path

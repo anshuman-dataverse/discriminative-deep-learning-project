@@ -53,7 +53,6 @@ export function Legend({ series }: { series: Series[] }) {
   );
 }
 
-/** Lines over epochs on one shared axis. */
 export function EpochLines({
   data,
   series,
@@ -100,7 +99,6 @@ export function EpochLines({
   );
 }
 
-/** One bar per category, single series, zero baseline. */
 export function Bars({
   data,
   xKey,

@@ -11,7 +11,7 @@ from PIL import Image, ImageOps
 from torch.utils.data import DataLoader, Dataset
 from torchvision import transforms
 
-Image.MAX_IMAGE_PIXELS = None  # some uploads are unresized 16128x16128 phone photos
+Image.MAX_IMAGE_PIXELS = None
 
 IMG_SIZE = 224
 IMAGENET_MEAN = [0.485, 0.456, 0.406]

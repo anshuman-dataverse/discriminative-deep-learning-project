@@ -14,7 +14,6 @@ export function loadFromUrl(src: string): Promise<LoadedImage> {
   });
 }
 
-/** Upload, drag-and-drop, paste and camera capture, all producing a LoadedImage. */
 export function ImageInput({ onImage, children }: { onImage: (img: LoadedImage) => void; children: React.ReactNode }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);

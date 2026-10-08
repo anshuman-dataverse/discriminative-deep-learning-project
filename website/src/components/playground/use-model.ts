@@ -9,7 +9,6 @@ export type ModelState =
   | { status: "ready"; backend: Backend }
   | { status: "error"; message: string };
 
-/** Track loading of one model; `ensure` is safe to call repeatedly. */
 export function useModel(load: (onProgress: (f: number) => void) => Promise<{ backend: Backend }>) {
   const [state, setState] = useState<ModelState>({ status: "idle" });
   const ensure = useCallback(async () => {

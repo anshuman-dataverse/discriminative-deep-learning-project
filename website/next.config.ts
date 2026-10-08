@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  // Cross-origin isolation lets ONNX Runtime use multi-threaded WebAssembly when WebGPU is unavailable.
   async headers() {
     return [
       {

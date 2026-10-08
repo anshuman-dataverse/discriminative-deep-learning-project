@@ -1,5 +1,3 @@
-// Loads onnxruntime-web (self-hosted in /ort) once and creates inference sessions.
-// WebGPU is used when the browser supports it, otherwise multi-threaded WASM.
 import type * as OrtTypes from "onnxruntime-web";
 
 export type Ort = typeof OrtTypes;
@@ -23,7 +21,6 @@ export function loadOrt(): Promise<Ort> {
     s.onload = () => {
       const ort = window.ort!;
       ort.env.wasm.wasmPaths = "/ort/";
-      // Threads need cross-origin isolation (COOP/COEP headers in next.config.ts).
       ort.env.wasm.numThreads = window.crossOriginIsolated ? Math.min(4, navigator.hardwareConcurrency || 2) : 1;
       resolve(ort);
     };
@@ -42,8 +39,6 @@ export function preferredBackend(): Backend {
   return "gpu" in navigator ? "webgpu" : "wasm";
 }
 
-/** Download a model with progress, create a session (falling back to WASM if WebGPU fails),
- *  and run one warm-up pass so the first real inference time is representative. */
 export async function createSession(
   url: string,
   inputShape: number[],

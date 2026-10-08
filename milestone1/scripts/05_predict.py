@@ -1,7 +1,4 @@
 """Identify the object in one or more photos.
-
-    python scripts/05_predict.py photo.jpg [more.jpg ...]
-    python scripts/05_predict.py photo.jpg --model models/MobileNetV3.pt
 """
 import argparse
 from pathlib import Path

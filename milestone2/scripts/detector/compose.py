@@ -73,7 +73,7 @@ def _scatter_layout(n: int, rng: random.Random, gap: int = 6):
         for _ in range(200):
             side = rng.randint(130, 300)
             w = h = side
-            if rng.random() < 0.3:  # mild aspect jitter
+            if rng.random() < 0.3:
                 h = int(side * rng.uniform(0.8, 1.25))
             if w > CANVAS or h > CANVAS:
                 continue

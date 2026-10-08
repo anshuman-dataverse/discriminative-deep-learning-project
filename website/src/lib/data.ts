@@ -1,4 +1,3 @@
-// Results and samples exported by milestone2/scripts/05_export_web.py.
 import classesJson from "@/data/classes.json";
 import m1Json from "@/data/m1.json";
 import metricsJson from "@/data/metrics.json";

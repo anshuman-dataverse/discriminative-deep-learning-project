@@ -2,8 +2,6 @@
 
 Reuses the milestone 1 pipeline: 224x224 RGB with EXIF orientation, near-duplicates removed,
 stratified 70/15/15 split. Background-only photos are kept in data/singles/backgrounds/ for compositing.
-
-    python scripts/00_prepare_singles.py                  # reads data/raw/*/
 """
 import argparse
 import json

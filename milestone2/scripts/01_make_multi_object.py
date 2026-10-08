@@ -4,8 +4,6 @@ Pastes 2-6 single-object photos (data/singles/<split>) onto a background-only ph
 layouts: scattered with gaps (50%), a 2x2 / 3x3 concatenation grid (25%), or a packed collage where
 objects touch or overlap slightly (25%), with flip and colour augmentation. Each split uses only its
 own source images; a fingerprint check proves no image crosses splits, and every label is validated.
-
-    python scripts/01_make_multi_object.py                     # 1200 / 250 / 250 images
 """
 import argparse
 import json

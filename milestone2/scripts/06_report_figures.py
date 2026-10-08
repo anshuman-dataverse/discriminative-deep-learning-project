@@ -2,8 +2,6 @@
 
 Reads runs/make_multi_object.log, runs/train_yolov8s.log (+ results.csv), runs/evaluate.log and
 runs/detect.log, and writes screenshots/terminal_{generate,train,evaluate,detect}.png.
-
-    python scripts/06_report_figures.py
 """
 import csv
 import re
@@ -20,7 +18,7 @@ def clean(text: str) -> list[str]:
     lines = []
     for raw in text.replace("\r", "\n").split("\n"):
         line = ANSI.sub("", raw).rstrip()
-        if "━" in line or "──" in line:  # progress bars
+        if "━" in line or "──" in line:
             continue
         lines.append(line.encode("ascii", "ignore").decode())
     return lines

@@ -1,6 +1,5 @@
 """Compare the trained models and pick the best one.
 
-    python scripts/04_evaluate_models.py
 
 Writes results/model_comparison.{json,png}.
 """

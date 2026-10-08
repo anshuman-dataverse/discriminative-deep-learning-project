@@ -1,7 +1,5 @@
 """Train SimpleCNN, ResNet18, MobileNetV3 and EfficientNetB0 on data/{train,val,test}.
 
-    python scripts/03_train_models.py                              # all models
-    python scripts/03_train_models.py --models ResNet18 --epochs 10
 
 Writes models/<Model>.pt and results/<Model>_{classification_report.json, training_history.png, confusion_matrix.png}.
 """

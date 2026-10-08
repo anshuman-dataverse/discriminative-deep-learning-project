@@ -1,5 +1,3 @@
-// EfficientNet-B0 single-object classifier in the browser.
-// Mirrors milestone1/scripts/classifier/data.py eval_transform: resize to 224x224, ImageNet mean/std.
 import type { InferenceSession } from "onnxruntime-web";
 import { createSession, loadOrt, type Backend } from "./ort";
 

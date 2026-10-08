@@ -14,7 +14,6 @@ export type StageBox = {
   truth?: boolean;
 };
 
-/** An image with boxes drawn over it in the image's own pixel coordinates. */
 export function ImageStage({
   src,
   width,

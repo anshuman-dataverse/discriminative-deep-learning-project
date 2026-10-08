@@ -216,7 +216,7 @@ Milestone 1 delivers a working single-object identification pipeline for the cla
 
 - **Next step:** the remaining errors are photos that contain two dataset objects, which motivates Milestone 2 (YOLOv8 multi-object detection and localization).
 
-## 10. Deliverables and reproducibility
+## 10. Deliverables
 
 | **File** | **Purpose** |
 |----|----|
@@ -225,9 +225,7 @@ Milestone 1 delivers a working single-object identification pipeline for the cla
 | scripts/02_split_data.py | Clean, resize and deduplicate the images; write the stratified split |
 | scripts/03_train_models.py | Train the four models with early stopping |
 | scripts/04_evaluate_models.py | Compare the models and select the best |
-| scripts/05_predict.py | Identify new photos: python scripts/05_predict.py photo.jpg |
+| scripts/05_predict.py | Identify the object in new photos |
 | notebooks/01–03 | The same pipeline step by step, with error analysis and the live demo |
 | models/\<Model\>.pt | Trained weights (best validation epoch) |
 | results/ | Per-model classification report, training history and confusion matrix; model comparison |
-
-Run the scripts from milestone1/ in order (01 to 04), or the three notebooks. Models that are already trained are skipped by notebook 02 unless RETRAIN = True. A full retrain takes about 55 minutes on an Apple M4.

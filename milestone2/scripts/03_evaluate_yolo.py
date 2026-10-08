@@ -3,8 +3,6 @@
 Writes results/test_metrics.json (mAP, precision, recall, best-F1 threshold, object/image-level accuracy
 overall and per layout), results/per_class_ap.csv, results/test_errors.json, the Ultralytics curves and
 confusion matrix, and example detections / failure cases.
-
-    python scripts/03_evaluate_yolo.py                          # models/yolov8s_best.pt
 """
 import argparse
 import json
@@ -64,7 +62,7 @@ def main():
             elif c not in hits:
                 wrong_pairs[f"{names[c]} -> {names[hits[0]]}"] += 1
 
-    try:  # confidence that maximises the class-averaged F1 curve
+    try:
         f1 = box.f1_curve.mean(0)
         best_f1 = {"confidence": round(float(box.px[f1.argmax()]), 3), "f1": round(float(f1.max()), 4)}
     except AttributeError:
@@ -122,7 +120,6 @@ def main():
         if src.exists():
             shutil.copy2(src, results_dir / f"test_{fname}")
 
-    # example detections: ground truth (left) vs prediction (right); the worst images first
     df = df.assign(err=lambda d: d.n_gt - d.correct + d.false_alarm)
     picks = [stem for k in ("scatter", "grid", "collage") for stem in df[df.layout == k].sort_values("image").image[:2]]
     worst = list(df[df.err > 0].sort_values("err", ascending=False).image[:4])

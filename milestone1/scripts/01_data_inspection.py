@@ -1,6 +1,4 @@
 """Audit the raw shared-Drive download: image counts, sizes, color modes, naming and stray files.
-
-    python scripts/01_data_inspection.py                 # reads data/raw/*/
 """
 import argparse
 from pathlib import Path

@@ -3,8 +3,6 @@
 Every image is resized to 224x224 RGB with EXIF orientation applied, renamed OBJ###_###.jpg,
 and near-duplicates are removed so no photo appears in both train and test.
 Background-only photos are excluded.
-
-    python scripts/02_split_data.py                      # reads data/raw/*/
 """
 import argparse
 import json

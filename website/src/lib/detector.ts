@@ -1,5 +1,3 @@
-// YOLOv8 detector in the browser: letterbox -> ONNX -> decode [1, 4 + nc, N] -> class-agnostic NMS.
-// Mirrors milestone2/scripts/04_detect.py (Ultralytics predict with agnostic_nms=True).
 import type { InferenceSession } from "onnxruntime-web";
 import { createSession, loadOrt, type Backend } from "./ort";
 
@@ -54,7 +52,6 @@ export function iou(a: Box, b: Box): number {
   return union > 0 ? inter / union : 0;
 }
 
-/** Run the detector on an image. Boxes are returned in the image's own pixel coordinates. */
 export async function detect(
   source: CanvasImageSource,
   width: number,
@@ -106,7 +103,6 @@ export async function detect(
   return { detections: kept, ms, backend };
 }
 
-/** Ground-truth boxes from a YOLO label file's lines, in pixels of a size x size image. */
 export function parseYoloLabels(text: string, size: number, classes: string[]) {
   return text
     .trim()

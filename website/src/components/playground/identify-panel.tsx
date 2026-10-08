@@ -10,7 +10,6 @@ import { ImageStage } from "./image-stage";
 import { ModelStatus } from "./model-status";
 import { useModel } from "./use-model";
 
-/** Random test photos from n different objects; deterministic (every 4th object) when `random` is false. */
 function pickSingles(n: number, random = true) {
   const ids = random
     ? [...objectIds].sort(() => Math.random() - 0.5).slice(0, n)

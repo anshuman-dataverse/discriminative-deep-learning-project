@@ -1,4 +1,3 @@
-// Scene builder: a TypeScript port of the layouts in milestone2/scripts/detector/compose.py.
 export const CANVAS = 640;
 export type Layout = "scatter" | "grid" | "collage";
 export type Rect = { x: number; y: number; w: number; h: number };
@@ -12,7 +11,6 @@ function overlap(a: Rect, b: Rect) {
   return Math.max(0, ix) * Math.max(0, iy);
 }
 
-/** Non-overlapping boxes at random sizes and positions, with a small gap. */
 function scatter(n: number, gap = 6): Rect[] {
   const boxes: Rect[] = [];
   for (let k = 0; k < n; k++) {
@@ -34,7 +32,6 @@ function scatter(n: number, gap = 6): Rect[] {
   return boxes;
 }
 
-/** Cells of a 2x2 or 3x3 grid: the classic concatenated-images layout. */
 function grid(n: number): Rect[] {
   const k = n <= 4 ? 2 : 3;
   const cell = Math.floor(CANVAS / k);
@@ -42,7 +39,6 @@ function grid(n: number): Rect[] {
   return cells.map((i) => ({ x: (i % k) * cell, y: Math.floor(i / k) * cell, w: cell, h: cell }));
 }
 
-/** Packed boxes: each touches or overlaps another, covering at most 12% of any box. */
 function collage(n: number, maxOverlap = 0.12, touch = 4): Rect[] {
   const boxes: Rect[] = [];
   for (let k = 0; k < n; k++) {
@@ -74,7 +70,6 @@ export function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-/** Paste photos onto a background in the given layout; returns the canvas and where each photo went. */
 export async function composeScene(
   backgroundSrc: string,
   photos: { src: string; label: string }[],

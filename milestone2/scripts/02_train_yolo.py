@@ -1,7 +1,4 @@
 """Fine-tune COCO-pretrained YOLOv8 on the multi-object dataset (transfer learning).
-
-    python scripts/02_train_yolo.py                       # yolov8s, 60 epochs
-    python scripts/02_train_yolo.py --model yolov8n.pt --epochs 1   # quick smoke test
 """
 import argparse
 import shutil
