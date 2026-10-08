@@ -18,6 +18,19 @@ GitHub: <https://github.com/anshuman-dataverse/discriminative-deep-learning-proj
 
 Code, data, trained models and results are in the milestone1/ folder of the repository. This report covers the experimental setup, results, analysis and conclusions.
 
+## Update (October 7, 2026): retrained on all 73 classes
+
+This report was submitted on October 4 with the 38 classes uploaded at that time. After the full shared-Drive download with the final Object IDs became available, all four models were retrained on the same pipeline: 73 classes, 6,942 images, stratified 70/15/15 split (4,886 / 1,028 / 1,028). Matching the two downloads by image fingerprint showed that two first-upload IDs had changed: the folder uploaded as OBJ124 is final **OBJ011**, and the folder uploaded as OBJ002 is final **OBJ021**.
+
+| **Model** | **Val acc.** | **Test acc.** | **Top-5** | **Macro F1** | **Params** | **ms/img** |
+|----|----|----|----|----|----|----|
+| EfficientNet-B0 | 98.74% | 98.35% | 100.00% | 0.983 | 4.10M | 10.2 |
+| MobileNetV3-Large | 98.25% | 97.96% | 99.90% | 0.980 | 4.30M | 8.3 |
+| ResNet18 | 98.35% | 97.86% | 99.81% | 0.979 | 11.21M | 4.4 |
+| SimpleCNN (scratch) | 63.52% | 64.98% | 86.77% | 0.624 | 1.19M | 3.7 |
+
+EfficientNet-B0 remains the best model. It misclassifies 17 of 1,028 test images; 13 of the 17 are low-confidence guesses (below 0.6). The hardest classes are OBJ013 (F1 0.83), OBJ059 and OBJ061 (0.88, mostly confused with each other) and OBJ041 (0.88, confused with OBJ048); their photos are often wide scenes where the object is small. The retrained models are the ones used in the live demo (https://ie7615-group1-object-detection.vercel.app). The sections below are the original 38-class report.
+
 ## 1. Summary
 
 We built and compared four convolutional neural networks that identify which of **38 objects** appears in a 224×224 photo. Three ImageNet-pretrained networks fine-tuned with transfer learning all reached about 99% accuracy on held-out test images. A CNN trained from scratch reached only 67.85%.

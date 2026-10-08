@@ -21,16 +21,18 @@ A deep learning system that (1) identifies the object in a single-object image b
 
 ## Milestone 1: Single-object identification
 
-Four CNNs were trained and compared on the same stratified 70/15/15 split: 38 classes, 3,619 images, 535 test images.
+Four CNNs were trained and compared on the same stratified 70/15/15 split of the full class dataset: **73 classes (final Object IDs)**, 6,942 images, 1,028 test images.
 
-| Model | Type | Val acc. | Test acc. | Macro F1 | Params | ms / image | Train time |
-|---|---|---|---|---|---|---|---|
-| **EfficientNet-B0** | Transfer learning | 99.81% | **99.25%** | **0.993** | 4.06 M | 10.9 | 12.0 min |
-| MobileNetV3-Large | Transfer learning | 99.44% | 99.25% | 0.992 | 4.25 M | 7.1 | 7.7 min |
-| ResNet18 | Transfer learning | 99.44% | 98.69% | 0.987 | 11.2 M | 4.7 | 8.4 min |
-| SimpleCNN | From scratch (baseline) | 70.65% | 67.85% | 0.664 | 1.18 M | 4.3 | 25.7 min |
+| Model | Type | Val acc. | Test acc. | Top-5 | Macro F1 | Params | ms / image | Train time |
+|---|---|---|---|---|---|---|---|---|
+| **EfficientNet-B0** | Transfer learning | 98.74% | **98.35%** | 100.00% | **0.983** | 4.10 M | 10.2 | 14.6 min |
+| MobileNetV3-Large | Transfer learning | 98.25% | 97.96% | 99.90% | 0.980 | 4.30 M | 8.3 | 9.8 min |
+| ResNet18 | Transfer learning | 98.35% | 97.86% | 99.81% | 0.979 | 11.21 M | 4.4 | 12.5 min |
+| SimpleCNN | From scratch (baseline) | 63.52% | 64.98% | 86.77% | 0.624 | 1.19 M | 3.7 | 48.8 min |
 
-**Best model: EfficientNet-B0.** It misclassifies 4 of 535 test images, and all four are cluttered photos that also contain another class's object. Transfer learning is decisive: the scratch CNN reaches only 67.85% with about 67 training images per class.
+**Best model: EfficientNet-B0.** It misclassifies 17 of 1,028 test images; 13 of those 17 are low-confidence guesses (below 0.6), and the hardest classes (OBJ013, OBJ061 vs OBJ059, OBJ041 vs OBJ048) are photos where the object is small in a wide scene. Transfer learning is decisive: the scratch CNN reaches only 64.98% with about 67 training images per class.
+
+The submitted Milestone 1 report (October 4) covers the 38 classes uploaded at that time (EfficientNet-B0 99.25% on 535 test images). On October 7 all four models were retrained on the full 73-class download with the final Object IDs, which also corrected two IDs from the first upload (OBJ124 is final OBJ011, OBJ002 is final OBJ021); the table above and the demo website use the retrained models.
 
 Pipeline:
 
@@ -44,9 +46,9 @@ Pipeline:
 ```
 milestone1/
 ├── data/
-│   ├── train/OBJ###/            2,549 images
-│   ├── val/OBJ###/                535 images
-│   └── test/OBJ###/               535 images
+│   ├── train/OBJ###/            4,886 images
+│   ├── val/OBJ###/              1,028 images
+│   └── test/OBJ###/             1,028 images
 ├── models/                      EfficientNetB0.pt, MobileNetV3.pt, ResNet18.pt, SimpleCNN.pt
 ├── notebooks/                   01_data_preparation, 02_train_models, 03_evaluate_and_demo
 ├── report/                      Milestone1_Report.pdf, Milestone1_Report.md
@@ -81,14 +83,14 @@ python milestone1/scripts/04_evaluate_models.py      # -> results/model_comparis
 python milestone1/scripts/05_predict.py photo.jpg    # EfficientNetB0 by default
 ```
 
-To rebuild the dataset from scratch, put the extracted shared-Drive download(s) in `milestone1/data/raw/` and run:
+To rebuild the dataset from scratch, put the extracted shared-Drive download(s) in `milestone1/data/raw/` (or pass their folder to `02_split_data.py`) and run:
 
 ```bash
 python milestone1/scripts/01_data_inspection.py
 python milestone1/scripts/02_split_data.py
 ```
 
-The notebooks in `milestone1/notebooks/` run the same pipeline step by step, with error analysis and a live demo. Notebook 02 skips models that are already trained; set `RETRAIN = True` to retrain. Training runs on CUDA, Apple MPS or CPU, and a full retrain takes about 55 minutes on an Apple M4.
+The notebooks in `milestone1/notebooks/` run the same pipeline step by step, with error analysis and a live demo. Notebook 02 skips models that are already trained; set `RETRAIN = True` to retrain. Training runs on CUDA, Apple MPS or CPU, and a full retrain on the 73 classes takes about 1.5 hours on an Apple M4.
 
 ---
 
@@ -144,3 +146,4 @@ python scripts/04_detect.py data/multi/images/test/test_0003.jpg   # IDs + boxes
 ```
 
 To rebuild everything, put the extracted shared-Drive download in `milestone2/data/raw/` and run `00` to `03` in order. Training takes about 2 hours on an Apple M4.
+

@@ -1,0 +1,92 @@
+73 classes | {'test': 1028, 'train': 4886, 'val': 1028}
+=== SimpleCNN: 1.19M params, 40 epochs, lr=0.001, device=mps
+ep   1  train loss 4.204 acc 0.039 | val loss 4.065 acc 0.054 *
+ep   2  train loss 4.016 acc 0.064 | val loss 3.916 acc 0.075 *
+ep   3  train loss 3.908 acc 0.087 | val loss 3.827 acc 0.133 *
+ep   4  train loss 3.824 acc 0.106 | val loss 3.688 acc 0.157 *
+ep   5  train loss 3.754 acc 0.122 | val loss 3.616 acc 0.171 *
+ep   6  train loss 3.690 acc 0.135 | val loss 3.561 acc 0.180 *
+ep   7  train loss 3.614 acc 0.160 | val loss 3.510 acc 0.198 *
+ep   8  train loss 3.533 acc 0.185 | val loss 3.370 acc 0.249 *
+ep   9  train loss 3.477 acc 0.200 | val loss 3.301 acc 0.257 *
+ep  10  train loss 3.407 acc 0.217 | val loss 3.301 acc 0.274 *
+ep  11  train loss 3.338 acc 0.233 | val loss 3.148 acc 0.306 *
+ep  12  train loss 3.273 acc 0.254 | val loss 3.026 acc 0.349 *
+ep  13  train loss 3.218 acc 0.269 | val loss 3.018 acc 0.331
+ep  14  train loss 3.177 acc 0.285 | val loss 2.948 acc 0.348
+ep  15  train loss 3.086 acc 0.304 | val loss 2.927 acc 0.362 *
+ep  16  train loss 3.057 acc 0.318 | val loss 2.870 acc 0.386 *
+ep  17  train loss 3.001 acc 0.333 | val loss 2.744 acc 0.429 *
+ep  18  train loss 2.950 acc 0.355 | val loss 2.748 acc 0.434 *
+ep  19  train loss 2.886 acc 0.371 | val loss 2.640 acc 0.470 *
+ep  20  train loss 2.843 acc 0.382 | val loss 2.622 acc 0.470
+ep  21  train loss 2.805 acc 0.395 | val loss 2.680 acc 0.437
+ep  22  train loss 2.751 acc 0.412 | val loss 2.527 acc 0.485 *
+ep  23  train loss 2.703 acc 0.437 | val loss 2.452 acc 0.541 *
+ep  24  train loss 2.642 acc 0.448 | val loss 2.451 acc 0.516
+ep  25  train loss 2.605 acc 0.462 | val loss 2.387 acc 0.540
+ep  26  train loss 2.553 acc 0.480 | val loss 2.340 acc 0.565 *
+ep  27  train loss 2.534 acc 0.485 | val loss 2.387 acc 0.540
+ep  28  train loss 2.500 acc 0.496 | val loss 2.328 acc 0.559
+ep  29  train loss 2.462 acc 0.507 | val loss 2.288 acc 0.583 *
+ep  30  train loss 2.429 acc 0.520 | val loss 2.265 acc 0.593 *
+ep  31  train loss 2.417 acc 0.524 | val loss 2.212 acc 0.610 *
+ep  32  train loss 2.378 acc 0.538 | val loss 2.206 acc 0.606
+ep  33  train loss 2.367 acc 0.540 | val loss 2.187 acc 0.625 *
+ep  34  train loss 2.342 acc 0.547 | val loss 2.164 acc 0.635 *
+ep  35  train loss 2.319 acc 0.561 | val loss 2.179 acc 0.621
+ep  36  train loss 2.323 acc 0.558 | val loss 2.156 acc 0.629
+ep  37  train loss 2.327 acc 0.558 | val loss 2.176 acc 0.618
+ep  38  train loss 2.306 acc 0.568 | val loss 2.188 acc 0.609
+ep  39  train loss 2.292 acc 0.567 | val loss 2.142 acc 0.633
+ep  40  train loss 2.291 acc 0.559 | val loss 2.153 acc 0.627
+early stop after 6 epochs without improvement
+-> test accuracy 64.98%, macro F1 0.624
+
+=== ResNet18: 11.21M params, 15 epochs, lr=0.0003, device=mps
+ep   1  train loss 2.038 acc 0.700 | val loss 1.263 acc 0.899 *
+ep   2  train loss 1.090 acc 0.940 | val loss 1.112 acc 0.924 *
+ep   3  train loss 0.966 acc 0.974 | val loss 1.025 acc 0.961 *
+ep   4  train loss 0.911 acc 0.986 | val loss 1.059 acc 0.943
+ep   5  train loss 0.877 acc 0.991 | val loss 0.994 acc 0.965 *
+ep   6  train loss 0.853 acc 0.996 | val loss 0.949 acc 0.962
+ep   7  train loss 0.831 acc 0.998 | val loss 0.932 acc 0.972 *
+ep   8  train loss 0.817 acc 0.999 | val loss 0.911 acc 0.978 *
+ep   9  train loss 0.807 acc 1.000 | val loss 0.890 acc 0.982 *
+ep  10  train loss 0.799 acc 1.000 | val loss 0.886 acc 0.982 *
+ep  11  train loss 0.794 acc 1.000 | val loss 0.889 acc 0.981
+ep  12  train loss 0.788 acc 1.000 | val loss 0.885 acc 0.979
+ep  13  train loss 0.785 acc 1.000 | val loss 0.877 acc 0.983 *
+ep  14  train loss 0.783 acc 1.000 | val loss 0.881 acc 0.982
+ep  15  train loss 0.781 acc 1.000 | val loss 0.878 acc 0.982
+-> test accuracy 97.86%, macro F1 0.979
+
+=== MobileNetV3: 4.30M params, 15 epochs, lr=0.0003, device=mps
+ep   1  train loss 2.067 acc 0.673 | val loss 1.170 acc 0.916 *
+ep   2  train loss 1.017 acc 0.958 | val loss 1.013 acc 0.958 *
+ep   3  train loss 0.909 acc 0.985 | val loss 0.935 acc 0.973 *
+ep   4  train loss 0.866 acc 0.996 | val loss 0.910 acc 0.977 *
+ep   5  train loss 0.841 acc 0.995 | val loss 0.875 acc 0.982 *
+ep   6  train loss 0.826 acc 0.999 | val loss 0.876 acc 0.979
+ep   7  train loss 0.814 acc 0.998 | val loss 0.867 acc 0.981
+ep   8  train loss 0.809 acc 0.999 | val loss 0.859 acc 0.981
+ep   9  train loss 0.800 acc 1.000 | val loss 0.854 acc 0.980
+ep  10  train loss 0.796 acc 1.000 | val loss 0.847 acc 0.982
+ep  11  train loss 0.792 acc 1.000 | val loss 0.845 acc 0.981
+early stop after 6 epochs without improvement
+-> test accuracy 97.96%, macro F1 0.980
+
+=== EfficientNetB0: 4.10M params, 15 epochs, lr=0.0003, device=mps
+ep   1  train loss 2.510 acc 0.634 | val loss 1.133 acc 0.933 *
+ep   2  train loss 1.080 acc 0.935 | val loss 0.935 acc 0.971 *
+ep   3  train loss 0.907 acc 0.985 | val loss 0.894 acc 0.982 *
+ep   4  train loss 0.864 acc 0.991 | val loss 0.870 acc 0.987 *
+ep   5  train loss 0.845 acc 0.993 | val loss 0.864 acc 0.982
+ep   6  train loss 0.827 acc 0.997 | val loss 0.850 acc 0.985
+ep   7  train loss 0.817 acc 0.998 | val loss 0.838 acc 0.986
+ep   8  train loss 0.808 acc 0.998 | val loss 0.830 acc 0.985
+ep   9  train loss 0.802 acc 0.998 | val loss 0.830 acc 0.985
+ep  10  train loss 0.798 acc 0.998 | val loss 0.827 acc 0.984
+early stop after 6 epochs without improvement
+-> test accuracy 98.35%, macro F1 0.983
+
