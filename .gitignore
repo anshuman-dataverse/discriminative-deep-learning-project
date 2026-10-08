@@ -7,10 +7,16 @@ __pycache__/
 
 # raw shared-Drive download (scripts/02_split_data.py builds data/{train,val,test} from it)
 data/raw/
+milestone2/data/raw/
 drive-download-*/
-Images/
+/Images/
 images_OBJ*/
 mapping_OBJ*.csv
 
 # Office lock files
 ~$*
+
+# YOLO: pretrained checkpoints auto-download; best weights are copied to milestone2/models/
+milestone2/yolov8*.pt
+milestone2/runs/*/weights/
+milestone2/runs/detect/
