@@ -32,12 +32,19 @@ def draw_boxes(img: Image.Image, boxes, width: int = 3) -> Image.Image:
     return img
 
 
-def read_yolo_labels(label_file: Path, size: int, classes: list[str]):
+def caption(img: Image.Image, text: str):
+    d, font = ImageDraw.Draw(img), _font(15)
+    tw, th = d.textbbox((0, 0), text, font=font)[2:]
+    d.rectangle([0, img.height - th - 8, tw + 8, img.height], fill="white")
+    d.text((4, img.height - th - 5), text, fill="black", font=font)
+
+
+def read_yolo_labels(label_file: Path, width: int, height: int, classes: list[str]):
     boxes = []
     for line in Path(label_file).read_text().split("\n"):
         if line.strip():
             ci, xc, yc, w, h = line.split()
-            ci, xc, yc, w, h = int(ci), *(float(v) * size for v in (xc, yc, w, h))
+            ci, xc, w, yc, h = int(ci), float(xc) * width, float(w) * width, float(yc) * height, float(h) * height
             boxes.append((xc - w / 2, yc - h / 2, xc + w / 2, yc + h / 2, classes[ci], ci))
     return boxes
 
@@ -46,5 +53,8 @@ def grid(images: list[Image.Image], cols: int, cell: int = 480) -> Image.Image:
     rows = -(-len(images) // cols)
     out = Image.new("RGB", (cols * cell, rows * cell), "white")
     for i, im in enumerate(images):
-        out.paste(im.resize((cell, cell)), ((i % cols) * cell, (i // cols) * cell))
+        im = im.copy()
+        im.thumbnail((cell - 8, cell - 8))
+        x, y = (i % cols) * cell + (cell - im.width) // 2, (i // cols) * cell + (cell - im.height) // 2
+        out.paste(im, (x, y))
     return out

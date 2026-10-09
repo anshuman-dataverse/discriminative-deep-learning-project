@@ -20,3 +20,7 @@ mapping_OBJ*.csv
 milestone2/yolov8*.pt
 milestone2/runs/*/weights/
 milestone2/runs/detect/
+
+# image data stays in Drive / local storage, only code is pushed
+milestone1/data/
+milestone2/data/

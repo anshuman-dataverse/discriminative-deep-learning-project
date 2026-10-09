@@ -1,9 +1,11 @@
 """Clean and split the full shared-Drive download (final Object IDs) into data/singles/{train,val,test}/OBJ###/.
 
-Reuses the milestone 1 pipeline: 224x224 RGB with EXIF orientation, near-duplicates removed,
-stratified 70/15/15 split. Background-only photos are kept in data/singles/backgrounds/ for compositing.
+Reuses the milestone 1 pipeline: 224x224 RGB with EXIF orientation (this also resizes the one OBJ003
+photo that is not 224x224), exact and near-duplicates removed before splitting, stratified 70/15/15 split.
+OBJ054 is excluded because its photos do not show the object. Background-only photos are kept in data/singles/backgrounds/ for compositing.
 """
 import argparse
+import hashlib
 import json
 import shutil
 import sys
@@ -11,9 +13,10 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+EXCLUDE = {"OBJ054"}
 sys.path.insert(0, str(ROOT.parent / "milestone1" / "scripts"))
 
-from classifier.data import audit, make_split, normalize, remove_duplicates, write_split  # noqa: E402
+from classifier.data import EXTS, audit, make_split, normalize, remove_duplicates, write_split  # noqa: E402
 
 
 def main():
@@ -28,10 +31,20 @@ def main():
     print(f"{len(report)} folders, {report.images.sum()} images, {report.not_224x224.sum()} not 224x224, "
           f"{(~report.name_ok).sum()} misnamed")
 
+    digests = {}
+    for f in (f for r in raw for f in r.rglob("*") if f.is_file() and f.suffix.lower() in EXTS):
+        digests.setdefault(hashlib.md5(f.read_bytes()).hexdigest(), []).append(f)
+    exact = [fs for fs in digests.values() if len(fs) > 1]
+    print(f"{len(exact)} groups of byte-identical files ({sum(len(fs) - 1 for fs in exact)} extra copies)")
+
     with tempfile.TemporaryDirectory() as tmp:
         clean = Path(tmp)
         summary = normalize(raw, clean)
         print(f"{len(summary)} objects, {summary.object_imgs.sum()} object + {summary.background_imgs.sum()} background images")
+        for obj in sorted(EXCLUDE):
+            n = len(list((clean / f"images_{obj}").glob("*.jpg")))
+            shutil.rmtree(clean / f"images_{obj}", ignore_errors=True)
+            print(f"excluded {obj} ({n} photos)")
         removed, cross = remove_duplicates(clean)
         print(f"removed {len(removed)} duplicates ({cross} groups spanning two objects)")
         split = write_split(make_split(clean, seed=args.seed), out)

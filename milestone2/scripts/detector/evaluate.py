@@ -38,12 +38,13 @@ def match_image(gt, pred, thr: float = 0.5):
     return correct, wrong, len(gt) - matched, len(pred) - matched, ious
 
 
-def read_gt(label_file: Path, size: int):
+def read_gt(label_file: Path, width: int, height: int):
     gt = []
     for line in Path(label_file).read_text().split("\n"):
         if line.strip():
             c, xc, yc, w, h = line.split()
-            xc, yc, w, h = (float(v) * size for v in (xc, yc, w, h))
+            xc, w = float(xc) * width, float(w) * width
+            yc, h = float(yc) * height, float(h) * height
             gt.append((int(c), (xc - w / 2, yc - h / 2, xc + w / 2, yc + h / 2)))
     return gt
 
