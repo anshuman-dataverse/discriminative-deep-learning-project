@@ -75,55 +75,54 @@
     "OBJ073"
   ],
   "images": {
-    "test": 300,
-    "train": 1400,
-    "val": 300
+    "test": 250,
+    "train": 1200,
+    "val": 250
   },
   "objects": {
-    "test": 1017,
-    "train": 4734,
-    "val": 995
+    "test": 941,
+    "train": 4508,
+    "val": 970
   },
   "objects_per_image": {
-    "count": 2000.0,
-    "mean": 3.37,
-    "std": 1.49,
-    "min": 1.0,
-    "25%": 2.0,
-    "50%": 3.0,
+    "count": 1700.0,
+    "mean": 3.78,
+    "std": 1.28,
+    "min": 2.0,
+    "25%": 3.0,
+    "50%": 4.0,
     "75%": 5.0,
     "max": 6.0
   },
   "layouts": {
-    "scatter": 782,
-    "grid": 436,
-    "large": 420,
-    "collage": 362
+    "scatter": 873,
+    "grid": 423,
+    "collage": 404
   },
   "min_instances_per_class": {
-    "test": 13,
-    "train": 64,
+    "test": 12,
+    "train": 61,
     "val": 13
   },
   "leakage_check": {
     "source_paths_in_2+_splits": 0,
     "source_fingerprints_in_2+_splits": 0,
     "unique_source_images": {
-      "test": 1016,
-      "train": 4728,
-      "val": 994
+      "test": 941,
+      "train": 4508,
+      "val": 969
     },
     "background_paths_in_2+_splits": 0,
     "background_fingerprints_in_2+_splits": 0,
     "unique_background_images": {
       "test": 56,
-      "train": 258,
+      "train": 257,
       "val": 56
     }
   },
   "label_validation": {
-    "images_checked": 2000,
-    "boxes_checked": 6746,
+    "images_checked": 1700,
+    "boxes_checked": 6419,
     "invalid": 0
   }
 }

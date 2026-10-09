@@ -5,16 +5,16 @@ Classes: 73 (OBJ001 .. OBJ073)
   train   4886 single-object photos   261 backgrounds
   val     1028 single-object photos    56 backgrounds
   test    1028 single-object photos    56 backgrounds
-Generated  1400 train images,  4734 objects
-Generated   300 val images,   995 objects
-Generated   300 test images,  1017 objects
+Generated  1200 train images,  4508 objects
+Generated   250 val images,   970 objects
+Generated   250 test images,   941 objects
 ======================================================================
 SUMMARY
 ======================================================================
-Images: 2000  (train 1400, val 300, test 300)
-Objects: 6746  (1-6 per image, mean 3.37)
-Layouts: scatter 782, grid 436, large 420, collage 362
-Min. objects per class: train 64, val 13, test 13
+Images: 1700  (train 1200, val 250, test 250)
+Objects: 6419  (2-6 per image, mean 3.78)
+Layouts: scatter 873, grid 423, collage 404
+Min. objects per class: train 61, val 13, test 12
 Split check: 0 source paths and 0 source fingerprints in 2+ splits; 0 shared backgrounds
-Label check: 2000 images, 6746 boxes, 0 invalid
+Label check: 1700 images, 6419 boxes, 0 invalid
 Saved data/multi/ (images, labels, data.yaml, manifest.csv), results/dataset_stats.json
