@@ -41,7 +41,7 @@ def decide(g, o, min_iou: float, min_area: float):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--singles", type=Path, default=SINGLES)
-    ap.add_argument("--batch", type=int, default=32)
+    ap.add_argument("--batch", type=int, default=8)
     ap.add_argument("--min-iou", type=float, default=0.5)
     ap.add_argument("--min-area", type=float, default=0.03)
     args = ap.parse_args()
@@ -55,7 +55,7 @@ def main():
     dev = device()
     gdino, owl = GroundingDino(dev), Owl(dev)
     rule = "=" * 70
-    print(f"{rule}\nLABELLING {len(photos)} PHOTOS ({photos.label.nunique()} objects) ON {dev}\n{rule}")
+    print(f"{rule}\nLABELLING {len(photos)} PHOTOS ({photos.label.nunique()} objects) ON {dev}\n{rule}", flush=True)
 
     rows = []
     for start in range(0, len(photos), args.batch):
@@ -71,8 +71,8 @@ def main():
                          **{f"o{k}": o and o[1][i] for i, k in enumerate(("x1", "y1", "x2", "y2"))},
                          **{k: box and round(box[i], 1) for i, k in enumerate(("x1", "y1", "x2", "y2"))}})
         done = start + len(chunk)
-        if done % (args.batch * 20) < args.batch or done == len(photos):
-            print(f"  {done:>5} / {len(photos)}")
+        if done % (args.batch * 50) < args.batch or done == len(photos):
+            print(f"  {done:>5} / {len(photos)}", flush=True)
 
     df = pd.DataFrame(rows)
     df.to_csv(args.singles / "boxes.csv", index=False)
