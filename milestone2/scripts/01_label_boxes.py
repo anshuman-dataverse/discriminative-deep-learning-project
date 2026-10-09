@@ -4,6 +4,7 @@ Grounding DINO and OWLv2 each get a short text prompt per Object ID (detector.na
 highest-scoring box. A photo is kept when both models find the object and their boxes overlap with
 IoU >= --min-iou; the label is the mean of the two boxes. Photos where a model finds nothing, the two
 boxes disagree, or the object covers less than --min-area of the photo are left out and counted.
+Progress is saved to --partial every 50 batches and picked up again on the next run.
 Writes data/singles/boxes.csv, results/label_stats.json and screenshots/label_check_{kept,dropped}.jpg.
 """
 import argparse
@@ -22,6 +23,7 @@ from detector.plots import caption, draw_boxes, grid
 
 ROOT = Path(__file__).resolve().parent.parent
 SINGLES = ROOT / "data" / "singles"
+DRIVE = Path("/content/drive/MyDrive/IE7615_Milestone2")
 
 
 def decide(g, o, min_iou: float, min_area: float):
@@ -44,6 +46,7 @@ def main():
     ap.add_argument("--batch", type=int, default=8)
     ap.add_argument("--min-iou", type=float, default=0.5)
     ap.add_argument("--min-area", type=float, default=0.03)
+    ap.add_argument("--partial", type=Path, default=(DRIVE if DRIVE.exists() else SINGLES) / "boxes_partial.csv")
     args = ap.parse_args()
 
     photos = pd.DataFrame([{"path": str(f), "label": d.name, "split": s}
@@ -57,9 +60,12 @@ def main():
     rule = "=" * 70
     print(f"{rule}\nLABELLING {len(photos)} PHOTOS ({photos.label.nunique()} objects) ON {dev}\n{rule}", flush=True)
 
-    rows = []
-    for start in range(0, len(photos), args.batch):
-        chunk = photos.iloc[start:start + args.batch]
+    rows = pd.read_csv(args.partial).to_dict("records") if args.partial.exists() else []
+    todo = photos[~photos.path.isin({r["path"] for r in rows})]
+    if rows:
+        print(f"resuming: {len(rows)} photos already labelled in {args.partial}", flush=True)
+    for start in range(0, len(todo), args.batch):
+        chunk = todo.iloc[start:start + args.batch]
         images = [Image.open(p).convert("RGB") for p in chunk.path]
         prompts = [PROMPTS[l] for l in chunk.label]
         for r, g, o in zip(chunk.itertuples(), gdino(images, prompts), owl(images, prompts)):
@@ -70,9 +76,9 @@ def main():
                          **{f"g{k}": g and g[1][i] for i, k in enumerate(("x1", "y1", "x2", "y2"))},
                          **{f"o{k}": o and o[1][i] for i, k in enumerate(("x1", "y1", "x2", "y2"))},
                          **{k: box and round(box[i], 1) for i, k in enumerate(("x1", "y1", "x2", "y2"))}})
-        done = start + len(chunk)
-        if done % (args.batch * 50) < args.batch or done == len(photos):
-            print(f"  {done:>5} / {len(photos)}", flush=True)
+        if (start // args.batch) % 50 == 49 or start + len(chunk) == len(todo):
+            pd.DataFrame(rows).to_csv(args.partial, index=False)
+            print(f"  {len(rows):>5} / {len(photos)}", flush=True)
 
     df = pd.DataFrame(rows)
     df.to_csv(args.singles / "boxes.csv", index=False)

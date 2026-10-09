@@ -22,7 +22,8 @@ class GroundingDino:
     def __call__(self, images: list[Image.Image], prompts: list[str]):
         """Highest-scoring (score, (x1, y1, x2, y2)) per image, or None."""
         inputs = self.proc(images=images, text=[f"{p}." for p in prompts], return_tensors="pt", padding=True).to(self.dev)
-        out = self.model(**inputs)
+        with torch.autocast("cuda", dtype=torch.float16, enabled=self.dev == "cuda"):
+            out = self.model(**inputs)
         res = self.proc.post_process_grounded_object_detection(
             out, inputs.input_ids, threshold=0.2, text_threshold=0.2,
             target_sizes=[im.size[::-1] for im in images])
@@ -38,7 +39,8 @@ class Owl:
     @torch.no_grad()
     def __call__(self, images: list[Image.Image], prompts: list[str]):
         inputs = self.proc(images=images, text=[[f"a photo of a {p}"] for p in prompts], return_tensors="pt").to(self.dev)
-        out = self.model(**inputs)
+        with torch.autocast("cuda", dtype=torch.float16, enabled=self.dev == "cuda"):
+            out = self.model(**inputs)
         side = [max(im.size) for im in images]
         res = self.proc.post_process_grounded_object_detection(out, threshold=0.1, target_sizes=[(s, s) for s in side])
         return [_best(r["scores"], r["boxes"]) for r in res]
