@@ -21,7 +21,7 @@ from classifier.data import EXTS, audit, make_split, normalize, remove_duplicate
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("raw", nargs="*", help="extracted Drive download folders (default: data/raw/*)")
+    ap.add_argument("raw", nargs="*", type=Path, help="extracted Drive download folders (default: data/raw/*)")
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
     raw = args.raw or sorted(p for p in (ROOT / "data" / "raw").iterdir() if p.is_dir())
