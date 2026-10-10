@@ -4,7 +4,9 @@ Grounding DINO and OWLv2 each get a short text prompt per Object ID (detector.na
 highest-scoring box. A photo is kept when both models find the object and their boxes overlap with
 IoU >= --min-iou; the label is the mean of the two boxes. Photos where a model finds nothing, the two
 boxes disagree, or the object covers less than --min-area of the photo are left out and counted.
-Progress is saved to --partial every 50 batches and picked up again on the next run.
+Progress is saved to --partial every 50 batches and picked up again on the next run. Saved photos are
+decided again from their stored boxes; a photo is run through the detectors again only when its prompt
+changed or a detector found nothing at a higher score threshold than the current one.
 Writes data/singles/boxes.csv, results/label_stats.json and screenshots/label_check_{kept,dropped}.jpg.
 """
 import argparse
@@ -15,7 +17,7 @@ from pathlib import Path
 import pandas as pd
 from PIL import Image
 
-from detector.boxes import GroundingDino, Owl, device
+from detector.boxes import GDINO_THRESHOLD, OWL_THRESHOLD, GroundingDino, Owl, device
 from detector.compose import SPLITS, TILE
 from detector.evaluate import iou
 from detector.names import PROMPTS
@@ -40,12 +42,35 @@ def decide(g, o, min_iou: float, min_area: float):
     return "kept", v, box
 
 
+def stale(r) -> bool:
+    """Saved row that must be labelled again: new prompt, or a detector found nothing at a stricter threshold."""
+    return (r["prompt"] != PROMPTS.get(r["label"])
+            or (pd.isna(r["gx1"]) and _thr(r, "gdino_thr", 0.2) > GDINO_THRESHOLD)
+            or (pd.isna(r["ox1"]) and _thr(r, "owl_thr", 0.1) > OWL_THRESHOLD))
+
+
+def _thr(r, key: str, first_run: float) -> float:
+    v = r.get(key)
+    return first_run if v is None or pd.isna(v) else v
+
+
+def redecide(r: pd.Series, min_iou: float, min_area: float) -> pd.Series:
+    g = None if pd.isna(r.gx1) else (r.gdino_score, (r.gx1, r.gy1, r.gx2, r.gy2))
+    o = None if pd.isna(r.ox1) else (r.owl_score, (r.ox1, r.oy1, r.ox2, r.oy2))
+    status, v, box = decide(g, o, min_iou, min_area)
+    r = r.copy()
+    r["status"], r["iou"] = status, None if v is None else round(v, 3)
+    for i, k in enumerate(("x1", "y1", "x2", "y2")):
+        r[k] = None if box is None else round(box[i], 1)
+    return r
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--singles", type=Path, default=SINGLES)
     ap.add_argument("--batch", type=int, default=8)
     ap.add_argument("--min-iou", type=float, default=0.5)
-    ap.add_argument("--min-area", type=float, default=0.03)
+    ap.add_argument("--min-area", type=float, default=0.015)
     ap.add_argument("--partial", type=Path, default=(DRIVE if DRIVE.exists() else SINGLES) / "boxes_partial.csv")
     args = ap.parse_args()
 
@@ -60,10 +85,11 @@ def main():
     rule = "=" * 70
     print(f"{rule}\nLABELLING {len(photos)} PHOTOS ({photos.label.nunique()} objects) ON {dev}\n{rule}", flush=True)
 
-    rows = pd.read_csv(args.partial).to_dict("records") if args.partial.exists() else []
+    rows = [r for r in (pd.read_csv(args.partial).to_dict("records") if args.partial.exists() else [])
+            if not stale(r)]
     todo = photos[~photos.path.isin({r["path"] for r in rows})]
     if rows:
-        print(f"resuming: {len(rows)} photos already labelled in {args.partial}", flush=True)
+        print(f"resuming: {len(rows)} photos already labelled in {args.partial}, {len(todo)} to go", flush=True)
     for start in range(0, len(todo), args.batch):
         chunk = todo.iloc[start:start + args.batch]
         images = [Image.open(p).convert("RGB") for p in chunk.path]
@@ -71,7 +97,7 @@ def main():
         for r, g, o in zip(chunk.itertuples(), gdino(images, prompts), owl(images, prompts)):
             status, v, box = decide(g, o, args.min_iou, args.min_area)
             rows.append({"path": r.path, "label": r.label, "split": r.split, "prompt": PROMPTS[r.label],
-                         "status": status, "iou": None if v is None else round(v, 3),
+                         "gdino_thr": GDINO_THRESHOLD, "owl_thr": OWL_THRESHOLD, "status": status, "iou": None if v is None else round(v, 3),
                          "gdino_score": g and round(g[0], 3), "owl_score": o and round(o[0], 3),
                          **{f"g{k}": g and g[1][i] for i, k in enumerate(("x1", "y1", "x2", "y2"))},
                          **{f"o{k}": o and o[1][i] for i, k in enumerate(("x1", "y1", "x2", "y2"))},
@@ -81,6 +107,7 @@ def main():
             print(f"  {len(rows):>5} / {len(photos)}", flush=True)
 
     df = pd.DataFrame(rows)
+    df = df.apply(lambda r: redecide(r, args.min_iou, args.min_area), axis=1)
     df.to_csv(args.singles / "boxes.csv", index=False)
     kept = df[df.status == "kept"]
     per_class = kept.groupby(["split", "label"]).size().unstack(0).reindex(sorted(df.label.unique())).fillna(0)

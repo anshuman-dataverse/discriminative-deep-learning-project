@@ -6,6 +6,8 @@ from transformers import (AutoModelForZeroShotObjectDetection, AutoProcessor, Ow
 
 GDINO = "IDEA-Research/grounding-dino-tiny"
 OWL = "google/owlv2-base-patch16-ensemble"
+GDINO_THRESHOLD = 0.2
+OWL_THRESHOLD = 0.03
 
 
 def device() -> str:
@@ -25,7 +27,7 @@ class GroundingDino:
         with torch.autocast("cuda", dtype=torch.float16, enabled=self.dev == "cuda"):
             out = self.model(**inputs)
         res = self.proc.post_process_grounded_object_detection(
-            out, inputs.input_ids, threshold=0.2, text_threshold=0.2,
+            out, inputs.input_ids, threshold=GDINO_THRESHOLD, text_threshold=GDINO_THRESHOLD,
             target_sizes=[im.size[::-1] for im in images])
         return [_best(r["scores"], r["boxes"]) for r in res]
 
@@ -42,7 +44,7 @@ class Owl:
         with torch.autocast("cuda", dtype=torch.float16, enabled=self.dev == "cuda"):
             out = self.model(**inputs)
         side = [max(im.size) for im in images]
-        res = self.proc.post_process_grounded_object_detection(out, threshold=0.1, target_sizes=[(s, s) for s in side])
+        res = self.proc.post_process_grounded_object_detection(out, threshold=OWL_THRESHOLD, target_sizes=[(s, s) for s in side])
         return [_best(r["scores"], r["boxes"]) for r in res]
 
 
