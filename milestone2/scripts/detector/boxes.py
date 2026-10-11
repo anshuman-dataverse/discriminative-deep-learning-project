@@ -21,15 +21,15 @@ class GroundingDino:
         self.model = AutoModelForZeroShotObjectDetection.from_pretrained(GDINO).to(dev).eval()
 
     @torch.no_grad()
-    def __call__(self, images: list[Image.Image], prompts: list[str], whole: list[bool]):
-        """Highest-scoring (score, (x1, y1, x2, y2)) per image, or None; for whole=True the union of the strong boxes."""
+    def __call__(self, images: list[Image.Image], prompts: list[str]):
+        """Highest-scoring (score, (x1, y1, x2, y2)) per image, or None."""
         inputs = self.proc(images=images, text=[f"{p}." for p in prompts], return_tensors="pt", padding=True).to(self.dev)
         with torch.autocast("cuda", dtype=torch.float16, enabled=self.dev == "cuda"):
             out = self.model(**inputs)
         res = self.proc.post_process_grounded_object_detection(
             out, inputs.input_ids, threshold=GDINO_THRESHOLD, text_threshold=GDINO_THRESHOLD,
             target_sizes=[im.size[::-1] for im in images])
-        return [_best(r["scores"], r["boxes"], w) for r, w in zip(res, whole)]
+        return [_best(r["scores"], r["boxes"]) for r in res]
 
 
 class Owl:
@@ -39,23 +39,17 @@ class Owl:
         self.model = Owlv2ForObjectDetection.from_pretrained(OWL).to(dev).eval()
 
     @torch.no_grad()
-    def __call__(self, images: list[Image.Image], prompts: list[str], whole: list[bool]):
+    def __call__(self, images: list[Image.Image], prompts: list[str]):
         inputs = self.proc(images=images, text=[[f"a photo of a {p}"] for p in prompts], return_tensors="pt").to(self.dev)
         with torch.autocast("cuda", dtype=torch.float16, enabled=self.dev == "cuda"):
             out = self.model(**inputs)
         side = [max(im.size) for im in images]
         res = self.proc.post_process_grounded_object_detection(out, threshold=OWL_THRESHOLD, target_sizes=[(s, s) for s in side])
-        return [_best(r["scores"], r["boxes"], w) for r, w in zip(res, whole)]
+        return [_best(r["scores"], r["boxes"]) for r in res]
 
 
-def _best(scores, boxes, whole: bool = False):
-    """Top box; for objects made of parts (whole=True), the union of every box scoring at least half the top score."""
+def _best(scores, boxes):
     if len(scores) == 0:
         return None
     i = int(scores.argmax())
-    if whole:
-        strong = boxes[scores >= scores[i] / 2]
-        box = (strong[:, 0].min(), strong[:, 1].min(), strong[:, 2].max(), strong[:, 3].max())
-    else:
-        box = boxes[i]
-    return float(scores[i]), tuple(round(float(v), 1) for v in box)
+    return float(scores[i]), tuple(round(float(v), 1) for v in boxes[i])
