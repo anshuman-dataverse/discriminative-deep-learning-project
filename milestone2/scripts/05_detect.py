@@ -1,9 +1,11 @@
 """Detect every object in multi-object image(s): prints Object ID, confidence and box, saves an annotated copy.
 
 If an image has a YOLO label file (images/<split>/x.jpg -> labels/<split>/x.txt), each detection is also
-marked correct or wrong, and missed objects are listed. A summary closes the run.
+marked correct or wrong, and missed objects are listed. A summary closes the run. The default confidence
+threshold is the one 04_evaluate_yolo.py chose on the validation split (0.5 if it has not run yet).
 """
 import argparse
+import json
 from pathlib import Path
 
 import torch
@@ -21,7 +23,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("images", nargs="+", type=Path)
     ap.add_argument("--weights", type=Path, default=ROOT / "models" / "yolov8s_best.pt")
-    ap.add_argument("--conf", type=float, default=0.5)
+    metrics = ROOT / "results" / "test_metrics.json"
+    ap.add_argument("--conf", type=float, default=json.loads(metrics.read_text()).get("conf", 0.5) if metrics.exists() else 0.5)
     ap.add_argument("--out", type=Path, default=ROOT / "runs" / "detect")
     ap.add_argument("--imgsz", type=int, default=1120)
     ap.add_argument("--limit", type=int, default=None, help="only the first N images")

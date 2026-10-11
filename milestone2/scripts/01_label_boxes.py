@@ -6,7 +6,8 @@ IoU >= --min-iou; the label is the mean of the two boxes. Photos where a model f
 boxes disagree, or the object covers less than --min-area of the photo are left out and counted.
 Progress is saved to --partial every 50 batches and picked up again on the next run. Saved photos are
 decided again from their stored boxes; a photo is run through the detectors again only when its prompt
-changed or a detector found nothing at a higher score threshold than the current one.
+changed or a detector found nothing at a higher score threshold than the current one. For objects made of
+several parts (detector.names.WHOLE, the pair of sneakers) each model's box is the union of its strong boxes.
 Writes data/singles/boxes.csv, results/label_stats.json and screenshots/label_check_{kept,dropped}.jpg.
 """
 import argparse
@@ -20,7 +21,7 @@ from PIL import Image
 from detector.boxes import GDINO_THRESHOLD, OWL_THRESHOLD, GroundingDino, Owl, device
 from detector.compose import SPLITS, TILE
 from detector.evaluate import iou
-from detector.names import PROMPTS
+from detector.names import PROMPTS, WHOLE
 from detector.plots import caption, draw_boxes, grid
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -94,7 +95,8 @@ def main():
         chunk = todo.iloc[start:start + args.batch]
         images = [Image.open(p).convert("RGB") for p in chunk.path]
         prompts = [PROMPTS[l] for l in chunk.label]
-        for r, g, o in zip(chunk.itertuples(), gdino(images, prompts), owl(images, prompts)):
+        whole = [l in WHOLE for l in chunk.label]
+        for r, g, o in zip(chunk.itertuples(), gdino(images, prompts, whole), owl(images, prompts, whole)):
             status, v, box = decide(g, o, args.min_iou, args.min_area)
             rows.append({"path": r.path, "label": r.label, "split": r.split, "prompt": PROMPTS[r.label],
                          "gdino_thr": GDINO_THRESHOLD, "owl_thr": OWL_THRESHOLD, "status": status, "iou": None if v is None else round(v, 3),
