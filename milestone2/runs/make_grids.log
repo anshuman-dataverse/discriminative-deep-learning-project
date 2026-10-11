@@ -1,0 +1,21 @@
+======================================================================
+GENERATING GRID DATASET
+======================================================================
+Classes: 72 (OBJ001 .. OBJ073)
+Grids: 2x2 (448x448, 4 objects), 3x3 (672x672, 9 objects), 4x4 (896x896, 16 objects), 5x4 (1120x896, 20 objects), 5x5 (1120x1120, 25 objects)
+  train   3959 labelled single-object photos, 72 objects
+  val      845 labelled single-object photos, 72 objects
+  test     864 labelled single-object photos, 72 objects
+Generated  1000 train images,  14800 objects
+Generated   200 val images,   2960 objects
+Generated   200 test images,   2960 objects
+======================================================================
+SUMMARY
+======================================================================
+Images: 1400  (train 1000, val 200, test 200)
+Objects: 20720  (4-25 per image, mean 14.80)
+Grids (train): 2x2 200, 3x3 200, 4x4 200, 5x4 200, 5x5 200
+Min. objects per class: train 201, val 39, test 39
+Split check: 0 source paths and 0 source fingerprints in 2+ splits
+Label check: 1400 images, 20720 boxes, 0 invalid
+Saved /content/project/milestone2/data/multi/ (images, labels, data.yaml, manifest.csv), results/dataset_stats.json

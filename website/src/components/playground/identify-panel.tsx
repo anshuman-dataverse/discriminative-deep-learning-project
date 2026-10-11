@@ -3,7 +3,7 @@
 import { CheckCircle2, CircleAlert, Shuffle, Tag } from "lucide-react";
 import { useCallback, useState } from "react";
 import { classify, loadClassifier, type Prediction } from "@/lib/classifier";
-import { classes, objectIds, samples, thumb } from "@/lib/data";
+import { classes, objectIds, photos, thumb } from "@/lib/data";
 import { Stat } from "./detect-panel";
 import { ImageInput, loadFromUrl, type LoadedImage } from "./image-input";
 import { ImageStage } from "./image-stage";
@@ -15,8 +15,8 @@ function pickSingles(n: number, random = true) {
     ? [...objectIds].sort(() => Math.random() - 0.5).slice(0, n)
     : objectIds.filter((_, i) => i % 4 === 0).slice(0, n);
   return ids.map((id) => {
-    const photos = samples.singles[id];
-    return { id, src: random ? photos[Math.floor(Math.random() * photos.length)] : photos[0] };
+    const srcs = photos[id];
+    return { id, src: random ? srcs[Math.floor(Math.random() * srcs.length)] : srcs[0] };
   });
 }
 

@@ -20,6 +20,7 @@ import torch
 from PIL import Image
 from ultralytics import YOLO
 
+from detector.compose import load_objects
 from detector.evaluate import iou
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -32,7 +33,7 @@ from classifier.predict import load_model  # noqa: E402
 DATA = ROOT / "data"
 
 
-def letterbox(img: Image.Image, size=640):
+def letterbox(img: Image.Image, size=1120):
     w, h = img.size
     s = min(size / w, size / h)
     nw, nh = round(w * s), round(h * s)
@@ -40,12 +41,12 @@ def letterbox(img: Image.Image, size=640):
     px, py = (size - nw) / 2, (size - nh) / 2
     canvas.paste(img.resize((nw, nh), Image.BILINEAR), (round(px), round(py)))
     x = np.asarray(canvas, dtype=np.float32).transpose(2, 0, 1)[None] / 255
-    return x, s, round(px), round(py)
+    return x, s, round(px), round(py), canvas
 
 
 def onnx_detect(sess, img, conf=0.25, iou_thr=0.7):
     """The same decode + class-agnostic NMS the website runs (website/src/lib/detector.ts)."""
-    x, s, px, py = letterbox(img)
+    x, s, px, py, _ = letterbox(img)
     out = sess.run(None, {sess.get_inputs()[0].name: x})[0][0]
     scores = out[4:]
     cls, best = scores.argmax(0), scores.max(0)
@@ -64,13 +65,15 @@ def export_detector(weights: Path, out: Path, test_images: list[Path]) -> list[s
     with tempfile.TemporaryDirectory() as tmp:
         tmp_w = Path(tmp) / "detector.pt"
         shutil.copy2(weights, tmp_w)
-        onnx_path = Path(YOLO(str(tmp_w)).export(format="onnx", imgsz=640, opset=17, simplify=True, verbose=False))
+        onnx_path = Path(YOLO(str(tmp_w)).export(format="onnx", imgsz=1120, opset=17, simplify=True, verbose=False))
         sess = ort.InferenceSession(str(onnx_path), providers=["CPUExecutionProvider"])
         worst = 1.0
         for f in test_images:
             img = Image.open(f).convert("RGB")
-            ref = model.predict(img, conf=0.25, agnostic_nms=True, device="cpu", verbose=False)[0]
-            ref = [(int(c), tuple(b)) for c, b in zip(ref.boxes.cls.tolist(), ref.boxes.xyxy.tolist())]
+            _, s, px, py, canvas = letterbox(img)
+            ref = model.predict(canvas, imgsz=1120, conf=0.25, agnostic_nms=True, device="cpu", verbose=False)[0]
+            ref = [(int(c), ((b[0] - px) / s, (b[1] - py) / s, (b[2] - px) / s, (b[3] - py) / s))
+                   for c, b in zip(ref.boxes.cls.tolist(), ref.boxes.xyxy.tolist())]
             got = onnx_detect(sess, img)
             if len(ref) != len(got):
                 raise SystemExit(f"detector parity failed on {f.name}: {len(ref)} vs {len(got)} boxes")
@@ -130,35 +133,31 @@ def main():
     det_classes = export_detector(args.detector, public / "models" / "detector.onnx", rng.sample(multi_test, 10))
     cls_classes = export_classifier(args.classifier, public / "models" / "classifier.onnx",
                                     rng.sample(singles_test, 50))
-    if cls_classes != det_classes:
-        print(f"WARNING: classifier has {len(cls_classes)} classes, detector {len(det_classes)}; "
-              "retrain milestone 1 on the 73-class split")
+    if not set(det_classes) <= set(cls_classes):
+        print(f"WARNING: detector classes missing from the classifier: {sorted(set(det_classes) - set(cls_classes))}")
 
     manifest = pd.read_csv(DATA / "multi" / "manifest.csv")
     test = manifest[manifest.split == "test"].drop_duplicates("image")
     samples = []
     shutil.rmtree(public / "samples", ignore_errors=True)
-    for layout in ("scatter", "grid", "collage"):
-        for stem in sorted(test[test.layout == layout].image)[:8]:
-            save_jpg(DATA / "multi" / "images" / "test" / f"{stem}.jpg", public / "samples" / f"{stem}.jpg")
-            labels = (DATA / "multi" / "labels" / "test" / f"{stem}.txt").read_text()
-            samples.append({"id": stem, "layout": layout, "src": f"/samples/{stem}.jpg", "labels": labels})
+    for grid in sorted(test.grid.unique(), key=lambda g: int(g[0]) * int(g[-1])):
+        for row in test[test.grid == grid].sort_values("image").head(6).itertuples():
+            save_jpg(DATA / "multi" / "images" / "test" / f"{row.image}.jpg", public / "samples" / f"{row.image}.jpg")
+            labels = (DATA / "multi" / "labels" / "test" / f"{row.image}.txt").read_text()
+            samples.append({"id": row.image, "grid": grid, "width": int(row.width), "height": int(row.height),
+                            "src": f"/samples/{row.image}.jpg", "labels": labels})
 
     singles = {}
     shutil.rmtree(public / "singles", ignore_errors=True)
-    for d in sorted((DATA / "singles" / "test").iterdir()):
-        if d.is_dir():
-            files = sorted(d.glob("*.jpg"))
-            picks = rng.sample(files, min(3, len(files)))
-            singles[d.name] = []
-            for f in picks:
-                save_jpg(f, public / "singles" / d.name / f.name, quality=88)
-                singles[d.name].append(f"/singles/{d.name}/{f.name}")
+    for label, df in load_objects(DATA / "singles" / "boxes.csv", DATA / "singles")["test"].groupby("label"):
+        rows = df.sort_values("path").to_dict("records")
+        singles[label] = []
+        for r in rng.sample(rows, min(3, len(rows))):
+            f = Path(r["path"])
+            save_jpg(f, public / "singles" / label / f.name, quality=88)
+            singles[label].append({"src": f"/singles/{label}/{f.name}",
+                                   "box": [round(r[k], 1) for k in ("x1", "y1", "x2", "y2")]})
     shutil.rmtree(public / "backgrounds", ignore_errors=True)
-    backgrounds = []
-    for src in sorted(map(Path, manifest[manifest.split == "test"].background.unique()))[:24]:
-        save_jpg(src, public / "backgrounds" / src.name, quality=85)
-        backgrounds.append(f"/backgrounds/{src.name}")
 
     results = ROOT / "results"
     (public / "figures").mkdir(parents=True, exist_ok=True)
@@ -182,13 +181,12 @@ def main():
         "metrics.json": metrics,
         "training.json": training,
         "m1.json": m1,
-        "samples.json": {"composites": samples, "singles": singles, "backgrounds": backgrounds},
+        "samples.json": {"composites": samples, "singles": singles},
     }
     for name, obj in files.items():
         (data_dir / name).write_text(json.dumps(obj, indent=1))
     print(f"data       -> {data_dir.relative_to(ROOT.parent)}/ ({', '.join(files)})")
-    print(f"images     -> {len(samples)} composites, {sum(map(len, singles.values()))} single photos, "
-          f"{len(backgrounds)} backgrounds")
+    print(f"images     -> {len(samples)} grids, {sum(map(len, singles.values()))} single photos")
 
 
 if __name__ == "__main__":

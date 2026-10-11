@@ -1,0 +1,6 @@
+73 folders, 7343 images, 3 not 224x224, 0 misnamed
+28 groups of byte-identical files (28 extra copies)
+73 objects, 6958 object + 385 background images
+excluded OBJ054 (100 photos)
+removed 28 duplicates (0 groups spanning two objects)
+72 classes | {'test': 1014, 'train': 4819, 'val': 1014} | 368 backgrounds -> data/singles/

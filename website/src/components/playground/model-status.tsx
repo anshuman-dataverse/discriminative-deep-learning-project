@@ -5,7 +5,7 @@ export function ModelStatus({ name, size, state }: { name: string; size: string;
   let dot = "bg-muted";
   if (state.status === "idle") text = `${name} loads on first use (${size})`;
   else if (state.status === "loading") {
-    text = `Downloading ${name}… ${Math.round(state.progress * 100)}%`;
+    text = state.progress < 1 ? `Downloading ${name}… ${Math.round(state.progress * 100)}%` : `Starting ${name}…`;
     dot = "bg-series-1 animate-pulse";
   } else if (state.status === "ready") {
     text = `${name} ready · ${state.backend === "webgpu" ? "WebGPU (GPU)" : "WebAssembly (CPU)"}`;

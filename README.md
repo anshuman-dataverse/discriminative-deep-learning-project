@@ -97,56 +97,54 @@ The notebooks in `milestone1/notebooks/` run the same pipeline step by step, wit
 
 ## Milestone 2: Multi-object detection and localization
 
-A COCO-pretrained YOLOv8s was fine-tuned on 1,700 generated multi-object images covering all **73 objects** (final Object IDs). Given an image, it returns the Object ID, confidence and bounding box of every object.
+A COCO-pretrained YOLOv8s was fine-tuned on 1,400 multi-object grid images covering **72 objects** (final Object IDs; OBJ054 excluded). Given an image, it returns the Object ID, confidence and bounding box of every object.
 
-| Metric (250 test images, 941 objects) | Value |
+| Metric (200 test images, 2,960 objects) | Value |
 |---|---|
-| mAP@0.5 | **0.981** |
-| mAP@0.5:0.95 | 0.978 |
-| Precision / Recall | 0.969 / 0.930 |
-| Objects with correct ID and location (conf ≥ 0.5) | 94.4% (0 false alarms) |
-| Images with every object correct | 80.4% |
-| Inference | 3.6 ms / image |
+| mAP@0.5 | **0.974** |
+| mAP@0.5:0.95 | 0.925 |
+| Precision / Recall | 0.956 / 0.951 |
+| Objects with correct ID and location (conf ≥ 0.5) | 95.0% |
+| Images with every object correct (4–25 objects each) | 32.0% |
+| Inference | 33.8 ms / image (Tesla T4, imgsz 1120) |
 
 How the multi-object images are built:
 
-- **Sources:** the full shared Drive (73 classes) is cleaned and split 70/15/15 per class with the Milestone 1 pipeline. Background-only photos are split the same way.
-- **Composition:** 2–6 randomly chosen objects (no class twice) are pasted onto a background photo from the same split: scattered at random sizes (50%), concatenated into a 2×2 / 3×3 grid (25%), or packed into a collage where photos touch or overlap slightly (25%), with flip and colour augmentation.
-- **Labels:** YOLO boxes are written automatically from the paste positions; `manifest.csv` records every source photo.
-- **Checks:** each split uses only its own source photos; a path and image-fingerprint check confirms that no photo appears in more than one split, and every label is validated.
+- **Sources:** the full shared Drive is cleaned with the Milestone 1 pipeline, OBJ054 is excluded, byte-identical duplicates are removed, and only then are the photos split 70/15/15 per class.
+- **Object boxes:** Grounding DINO and OWLv2 each box the object in every single-object photo from a short text prompt; a photo is kept only when the two boxes agree (IoU ≥ 0.5), and the label is their mean (82.8% of photos kept, median IoU 0.963).
+- **Grids:** 224×224 photos of distinct, randomly chosen objects are concatenated into 2×2, 3×3, 4×4, 5×4 or 5×5 grids (448×448 up to 1120×1120), with flip and colour augmentation; 1,000 / 200 / 200 images, 20,720 objects.
+- **Checks:** each split uses only its own photos; a path and image-fingerprint check confirms that no photo appears in more than one split, and every label is validated.
 
 ### Structure
 
 ```
 milestone2/
-├── data/
-│   ├── singles/{train,val,test}/OBJ###/   4,886 / 1,028 / 1,028 single-object images
-│   ├── singles/backgrounds/               373 background-only photos
-│   └── multi/                             images/, labels/ (1,200 / 250 / 250), data.yaml, manifest.csv
+├── notebooks/milestone2_colab.ipynb       whole pipeline on Google Colab (checkpoints on Google Drive)
 ├── models/                                yolov8s_best.pt
 ├── report/                                Milestone2_Report.pdf, Milestone2_Report.md
-├── results/                               test_metrics.json, per_class_ap.csv, dataset_stats.json, curves
-├── runs/yolov8s/                          Ultralytics training logs and plots
+├── results/                               test_metrics.json, per_class_ap.csv, dataset_stats.json, label_stats.json, curves
+├── runs/                                  console logs, Ultralytics training and evaluation plots
 ├── screenshots/                           figures used in the report
 └── scripts/
-    ├── 00_prepare_singles.py              clean and split the full Drive download
-    ├── 01_make_multi_object.py            generate multi-object images + YOLO labels
-    ├── 02_train_yolo.py                   fine-tune YOLOv8s
-    ├── 03_evaluate_yolo.py                test metrics, example detections
-    ├── 04_detect.py                       detect objects in new images
-    ├── 05_export_web.py                   export models (ONNX) and results for the website
-    ├── 06_report_figures.py               render console outputs as report figures
-    └── detector/                          shared code: compose, evaluate, plots
+    ├── 00_prepare_singles.py              clean, deduplicate and split the Drive photos
+    ├── 01_label_boxes.py                  object boxes from Grounding DINO + OWLv2, cross-checked
+    ├── 02_make_grids.py                   grid images + YOLO labels, split and label checks
+    ├── 03_train_yolo.py                   fine-tune YOLOv8s (imgsz 1120, batch 8)
+    ├── 04_evaluate_yolo.py                test metrics, example detections, failure cases
+    ├── 05_detect.py                       detect objects in new images
+    ├── 06_export_web.py                   export models (ONNX) and results for the website
+    ├── 07_report_figures.py               render console outputs as report figures
+    └── detector/                          shared code: boxes, compose, evaluate, plots, prompts
 ```
 
 ### Usage
 
 ```bash
 cd milestone2
-python scripts/04_detect.py data/multi/images/test/test_0003.jpg   # IDs + boxes, annotated copy in runs/detect/
+python scripts/05_detect.py data/multi/images/test/test_0003.jpg   # IDs + boxes, annotated copy in runs/detect/
 ```
 
-To rebuild everything, put the extracted shared-Drive download in `milestone2/data/raw/` and run `00` to `03` in order. Training takes about 2 hours on an Apple M4.
+The image data is not in the repository. The Colab notebook downloads the shared photos and runs `00` to `05` in order; training takes about 52 minutes on a Tesla T4.
 
 ---
 
@@ -158,10 +156,10 @@ Both trained models run in the visitor's browser with ONNX Runtime Web (WebGPU o
 
 - **Detect objects:** upload, paste or photograph a multi-object image, or pick a held-out test image; every object gets a box with its Object ID and confidence, and test images are scored correct or wrong.
 - **Identify object:** the EfficientNet-B0 classifier gives the Object ID of a single-object photo with its top-5.
-- **Build a scene:** choose objects and a layout; the browser composes a scene like the training data and runs the detector.
-- **Metrics, Method, Objects:** results of both milestones, the pipeline, and all 73 objects.
+- **Build a grid:** choose a grid size and objects; the browser builds a grid like the training data and runs the detector.
+- **Metrics, Method, Objects:** results of both milestones, the pipeline, and all 73 objects (the detector covers 72; OBJ054 is excluded from Milestone 2).
 
-`milestone2/scripts/05_export_web.py` exports both models to ONNX (checked against PyTorch on test images) and the results into `website/`. To run the site locally:
+`milestone2/scripts/06_export_web.py` exports both models to ONNX (checked against PyTorch on test images) and the results into `website/`. To run the site locally:
 
 ```bash
 cd website

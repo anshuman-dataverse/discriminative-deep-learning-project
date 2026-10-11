@@ -1,7 +1,7 @@
 """Fine-tune COCO-pretrained YOLOv8 on the grid dataset (transfer learning).
 
 Checkpoints go to --project (a Google Drive folder on Colab); if <project>/<name>/weights/last.pt
-exists, training resumes from it.
+exists, training resumes from it. --resume-from continues a checkpoint saved on another machine.
 """
 import argparse
 import shutil
@@ -23,11 +23,18 @@ def main():
     ap.add_argument("--project", type=Path, default=ROOT / "runs")
     ap.add_argument("--name", default=None, help="run name under the project folder (default: model stem)")
     ap.add_argument("--workers", type=int, default=8)
+    ap.add_argument("--resume-from", type=Path, default=None, help="last.pt from another machine")
     args = ap.parse_args()
 
     device = "0" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu")
     name = args.name or Path(args.model).stem
     last = args.project / name / "weights" / "last.pt"
+    if args.resume_from:
+        ckpt = torch.load(args.resume_from, map_location="cpu", weights_only=False)
+        ckpt["train_args"].update(data=str(args.data), project=str(args.project), name=name,
+                                  save_dir=str(args.project / name), device=device, workers=args.workers)
+        last.parent.mkdir(parents=True, exist_ok=True)
+        torch.save(ckpt, last)
     if last.exists():
         print(f"resuming from {last}")
         YOLO(str(last)).train(resume=True)

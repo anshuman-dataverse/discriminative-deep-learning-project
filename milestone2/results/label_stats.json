@@ -1,0 +1,37 @@
+{
+  "photos": 6847,
+  "kept": 5668,
+  "left_out": {
+    "disagree": 557,
+    "one_model": 323,
+    "too_small": 283,
+    "no_box": 16
+  },
+  "kept_by_split": {
+    "test": 864,
+    "train": 3959,
+    "val": 845
+  },
+  "left_out_by_class": {
+    "OBJ060": 61,
+    "OBJ048": 48,
+    "OBJ032": 42,
+    "OBJ065": 40,
+    "OBJ041": 40,
+    "OBJ020": 39,
+    "OBJ007": 38,
+    "OBJ010": 37,
+    "OBJ061": 37,
+    "OBJ025": 34
+  },
+  "min_kept_per_class": {
+    "test": 6,
+    "train": 25,
+    "val": 3
+  },
+  "classes_without_test_photos": [],
+  "median_iou_kept": 0.963,
+  "mean_box_area_fraction": 0.256,
+  "min_iou": 0.5,
+  "min_area": 0.015
+}

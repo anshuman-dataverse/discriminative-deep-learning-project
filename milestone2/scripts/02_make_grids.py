@@ -27,13 +27,14 @@ def main():
     ap.add_argument("--val", type=int, default=200)
     ap.add_argument("--test", type=int, default=200)
     ap.add_argument("--boxes", type=Path, default=ROOT / "data" / "singles" / "boxes.csv")
+    ap.add_argument("--singles", type=Path, default=ROOT / "data" / "singles")
     ap.add_argument("--out", type=Path, default=ROOT / "data" / "multi")
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
 
     out = args.out
     shutil.rmtree(out, ignore_errors=True)
-    objects = load_objects(args.boxes)
+    objects = load_objects(args.boxes, args.singles)
     classes = sorted(set().union(*(set(df.label) for df in objects.values())))
     rule = "=" * 70
     print(f"{rule}\nGENERATING GRID DATASET\n{rule}")

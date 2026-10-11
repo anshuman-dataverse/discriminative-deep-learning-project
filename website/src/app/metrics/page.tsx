@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Bars, EpochLines } from "@/components/charts";
 import { Figure, PageHeader, Section, StatTile } from "@/components/ui";
-import { m1, metrics, pct, training } from "@/lib/data";
+import { classes, GRIDS, gridShape, m1, metrics, pct, training } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Metrics" };
 
@@ -26,7 +26,8 @@ export default function MetricsPage() {
   const perClass = [...metrics.per_class].sort((a, b) => a.AP50 - b.AP50);
   const pairs = Object.entries(metrics.errors.wrong_id_pairs).slice(0, 8);
   const missed = Object.entries(metrics.errors.missed_by_class).slice(0, 8);
-  const layouts = Object.entries(metrics.by_layout);
+  const grids = GRIDS.filter((g) => metrics.by_grid[g]).map((g) => [g, metrics.by_grid[g]] as const);
+  const nDet = classes.detector.length;
   const best = m1.models.find((m) => m.model === m1.best_model)!;
   const hardest = Object.entries(m1.per_class_f1).sort((a, b) => a[1] - b[1]).slice(0, 5);
 
@@ -45,7 +46,7 @@ export default function MetricsPage() {
           <StatTile label="Images fully correct" value={pct(acc.image_accuracy)} sub={`${acc.images_fully_correct} of ${acc.images}`} />
         </div>
         <p className="mt-3 text-sm text-ink-2">
-          {metrics.test_images} test images built only from test-split photos · {metrics.inference_ms_per_image} ms per image on an Apple M4 GPU
+          {metrics.test_images} test grids ({acc.objects.toLocaleString()} objects) built only from test-split photos · {metrics.inference_ms_per_image} ms per image at 1120 × 1120 on a Tesla T4 GPU
           {metrics.best_f1 && ` · best F1 ${metrics.best_f1.f1.toFixed(3)} at confidence ${metrics.best_f1.confidence}`}.
         </p>
 
@@ -74,8 +75,8 @@ export default function MetricsPage() {
 
         <Figure
           className="mt-6"
-          title="Test AP@0.5 for each of the 73 objects"
-          caption={`Sorted from hardest to easiest. Orange bars are below 0.80. ${metrics.class_tiers["excellent (AP50 >= 0.95)"]?.count ?? 0} of 73 classes reach 0.95 or more.`}
+          title={`Test AP@0.5 for each of the ${nDet} objects`}
+          caption={`Sorted from hardest to easiest. Orange bars are below 0.80. ${metrics.class_tiers["excellent (AP50 >= 0.95)"]?.count ?? 0} of ${nDet} classes reach 0.95 or more.`}
         >
           <Bars data={perClass} xKey="object_id" yKey="AP50" label="AP@0.5" height={260} showTicks={false} highlightBelow={0.8} />
           <details className="mt-3 text-sm">
@@ -102,16 +103,16 @@ export default function MetricsPage() {
         </Figure>
 
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
-          <Figure title="Accuracy by layout" caption="Share of objects with the correct ID and box, and of images where everything is correct.">
+          <Figure title="Accuracy by grid size" caption="Share of objects with the correct ID and box, and of images where every object is correct (one miss fails the whole image).">
             <table className="tabular w-full text-sm">
               <thead className="text-left text-xs text-ink-2">
-                <tr><th className="py-1 font-medium">Layout</th><th className="py-1 font-medium">Images</th><th className="py-1 font-medium">Object acc.</th><th className="py-1 font-medium">Image acc.</th></tr>
+                <tr><th className="py-1 font-medium">Grid</th><th className="py-1 font-medium">Objects</th><th className="py-1 font-medium">Object acc.</th><th className="py-1 font-medium">Image acc.</th></tr>
               </thead>
               <tbody>
-                {layouts.map(([k, v]) => (
+                {grids.map(([k, v]) => (
                   <tr key={k} className="border-t border-line">
-                    <td className="py-2 font-medium capitalize">{k}</td>
-                    <td className="py-2 text-ink-2">{v.images}</td>
+                    <td className="py-2 font-medium">{k.replace("x", "×")}</td>
+                    <td className="py-2 text-ink-2">{gridShape(k).cols * gridShape(k).rows} × {v.images}</td>
                     <td className="py-2">{pct(v.object_accuracy)}</td>
                     <td className="py-2">{pct(v.image_accuracy)}</td>
                   </tr>

@@ -1,4 +1,4 @@
-import { objectIds, samples } from "@/lib/data";
+import { objectIds, photos } from "@/lib/data";
 
 function Row({ ids, reverse, pick }: { ids: string[]; reverse?: boolean; pick: number }) {
   const items = [...ids, ...ids];
@@ -7,7 +7,7 @@ function Row({ ids, reverse, pick }: { ids: string[]; reverse?: boolean; pick: n
       {items.map((id, i) => (
         <figure key={i} className="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl border border-line bg-surface sm:h-36 sm:w-36" aria-hidden={i >= ids.length}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={samples.singles[id][pick % samples.singles[id].length]} alt={i < ids.length ? `${id} test photo` : ""} loading="lazy" className="h-full w-full object-cover" />
+          <img src={photos[id][pick % photos[id].length]} alt={i < ids.length ? `${id} test photo` : ""} loading="lazy" className="h-full w-full object-cover" />
           <figcaption className="absolute bottom-1.5 left-1.5 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-medium text-white backdrop-blur">{id}</figcaption>
         </figure>
       ))}

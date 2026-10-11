@@ -9,7 +9,7 @@ import { ScenePanel } from "./scene-panel";
 const TABS = [
   { id: "detect", label: "Detect", sub: "Multi-object · YOLOv8s", icon: ScanSearch },
   { id: "identify", label: "Identify", sub: "Single object · EfficientNet-B0", icon: Tag },
-  { id: "scene", label: "Build a scene", sub: "Compose, then detect", icon: Layers },
+  { id: "scene", label: "Build a grid", sub: "Tile photos, then detect", icon: Layers },
 ] as const;
 
 export function Playground() {

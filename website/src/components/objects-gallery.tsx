@@ -3,12 +3,12 @@
 import { AnimatePresence, motion } from "motion/react";
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import { m1, metrics, objectIds, samples } from "@/lib/data";
+import { m1, metrics, objectIds, photos } from "@/lib/data";
 import { useCan3D } from "./three-utils";
 
 const Objects3D = dynamic(() => import("./objects-3d"), { ssr: false });
 
-const ITEMS = objectIds.map((id) => ({ id, src: samples.singles[id][0] }));
+const ITEMS = objectIds.map((id) => ({ id, src: photos[id][0] }));
 const AP = Object.fromEntries(metrics.per_class.map((r) => [r.object_id, r]));
 
 export function ObjectsGallery() {
@@ -42,7 +42,7 @@ export function ObjectsGallery() {
               </p>
             </div>
             <div className="mt-3 grid grid-cols-3 gap-2">
-              {samples.singles[selected].map((src) => (
+              {photos[selected].map((src) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img key={src} src={src} alt={`${selected} test photo`} className="aspect-square w-full rounded-lg object-cover" />
               ))}

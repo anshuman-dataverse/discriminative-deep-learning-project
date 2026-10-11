@@ -1,0 +1,36 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/978 [00:00<?, ?it/s]Loading weights:  78%|███████▊  | 759/978 [00:00<00:00, 7588.25it/s]Loading weights: 100%|██████████| 978/978 [00:00<00:00, 6345.22it/s]
+Loading weights:   0%|          | 0/418 [00:00<?, ?it/s]Loading weights:  95%|█████████▍| 397/418 [00:00<00:00, 3959.93it/s]Loading weights: 100%|██████████| 418/418 [00:00<00:00, 3940.94it/s]
+======================================================================
+LABELLING 6847 PHOTOS (72 objects) ON cuda
+======================================================================
+    400 / 6847
+    800 / 6847
+   1200 / 6847
+   1600 / 6847
+   2000 / 6847
+   2400 / 6847
+   2800 / 6847
+   3200 / 6847
+   3600 / 6847
+   4000 / 6847
+   4400 / 6847
+   4800 / 6847
+   5200 / 6847
+   5600 / 6847
+   6000 / 6847
+   6400 / 6847
+   6800 / 6847
+   6847 / 6847
+======================================================================
+SUMMARY
+======================================================================
+Kept            5668 / 6847  (82.8%)
+Left out         557  disagree
+Left out         323  one_model
+Left out         283  too_small
+Left out          16  no_box
+Kept by split  train 3959, val 845, test 864
+Min per class  train 25, val 3, test 6
+Median IoU between the two models (kept): 0.963
+Saved data/singles/boxes.csv, results/label_stats.json, screenshots/label_check_{kept,dropped}.jpg

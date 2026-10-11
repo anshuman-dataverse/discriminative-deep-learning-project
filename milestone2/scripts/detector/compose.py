@@ -22,10 +22,11 @@ def fingerprint(path) -> str:
         return hashlib.md5(ImageOps.exif_transpose(im).convert("L").resize((16, 16)).tobytes()).hexdigest()
 
 
-def load_objects(boxes_csv: Path) -> dict[str, pd.DataFrame]:
-    """Kept rows of the box table -> {split: DataFrame(path, label, x1, y1, x2, y2)}."""
+def load_objects(boxes_csv: Path, singles: Path) -> dict[str, pd.DataFrame]:
+    """Kept rows of the box table -> {split: DataFrame(path, label, x1, y1, x2, y2)}, with paths under singles/."""
     df = pd.read_csv(boxes_csv)
-    df = df[df.status == "kept"]
+    df = df[df.status == "kept"].copy()
+    df["path"] = [str(singles / s / l / Path(p).name) for s, l, p in zip(df.split, df.label, df.path)]
     return {s: df[df.split == s].reset_index(drop=True) for s in SPLITS}
 
 

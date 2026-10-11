@@ -53,7 +53,6 @@
     "OBJ051",
     "OBJ052",
     "OBJ053",
-    "OBJ054",
     "OBJ055",
     "OBJ056",
     "OBJ057",
@@ -75,54 +74,55 @@
     "OBJ073"
   ],
   "images": {
-    "test": 250,
-    "train": 1200,
-    "val": 250
+    "test": 200,
+    "train": 1000,
+    "val": 200
   },
   "objects": {
-    "test": 941,
-    "train": 4508,
-    "val": 970
+    "test": 2960,
+    "train": 14800,
+    "val": 2960
   },
-  "objects_per_image": {
-    "count": 1700.0,
-    "mean": 3.78,
-    "std": 1.28,
-    "min": 2.0,
-    "25%": 3.0,
-    "50%": 4.0,
-    "75%": 5.0,
-    "max": 6.0
-  },
-  "layouts": {
-    "scatter": 873,
-    "grid": 423,
-    "collage": 404
+  "grids": {
+    "test": {
+      "2x2": 40,
+      "3x3": 40,
+      "4x4": 40,
+      "5x4": 40,
+      "5x5": 40
+    },
+    "train": {
+      "2x2": 200,
+      "3x3": 200,
+      "4x4": 200,
+      "5x4": 200,
+      "5x5": 200
+    },
+    "val": {
+      "2x2": 40,
+      "3x3": 40,
+      "4x4": 40,
+      "5x4": 40,
+      "5x5": 40
+    }
   },
   "min_instances_per_class": {
-    "test": 12,
-    "train": 61,
-    "val": 13
+    "test": 39,
+    "train": 201,
+    "val": 39
   },
   "leakage_check": {
     "source_paths_in_2+_splits": 0,
     "source_fingerprints_in_2+_splits": 0,
     "unique_source_images": {
-      "test": 941,
-      "train": 4508,
-      "val": 969
-    },
-    "background_paths_in_2+_splits": 0,
-    "background_fingerprints_in_2+_splits": 0,
-    "unique_background_images": {
-      "test": 56,
-      "train": 257,
-      "val": 56
+      "test": 864,
+      "train": 3959,
+      "val": 845
     }
   },
   "label_validation": {
-    "images_checked": 1700,
-    "boxes_checked": 6419,
+    "images_checked": 1400,
+    "boxes_checked": 20720,
     "invalid": 0
   }
 }

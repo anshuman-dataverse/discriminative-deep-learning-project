@@ -5,9 +5,7 @@ import { Bar, CountUp, HeroScroll, Reveal, Tilt } from "@/components/motion";
 import { ObjectMarquee } from "@/components/object-marquee";
 import { Playground } from "@/components/playground/playground";
 import { ScrollStory, type Step } from "@/components/scroll-story";
-import { m1, metrics, pct } from "@/lib/data";
-
-const LAYOUT_NAMES: Record<string, string> = { scatter: "Scatter", grid: "Grid", collage: "Collage", large: "Large" };
+import { classes, GRIDS, gridShape, m1, metrics, objectIds, pct } from "@/lib/data";
 
 export default function Home() {
   const acc = metrics["at_conf_0.5"];
@@ -20,13 +18,14 @@ export default function Home() {
     { value: pct(acc.object_accuracy), label: "objects with correct ID + box" },
     { value: String(acc.false_alarms), label: "false alarms on test" },
   ];
-  const layouts = Object.entries(metrics.by_layout).sort((a, b) => b[1].object_accuracy - a[1].object_accuracy);
+  const grids = GRIDS.filter((g) => metrics.by_grid[g]).map((g) => [g, metrics.by_grid[g]] as const);
+  const nDet = classes.detector.length;
   const models = [...m1.models].sort((a, b) => b.test_acc - a.test_acc);
   const steps: Step[] = [
     { kicker: "Collect", title: "One object per student", body: "Every student photographed one everyday object. After fixing sizes and rotation and removing duplicates, each class was split 70 / 15 / 15.", stat: (6942).toLocaleString(), statLabel: "clean photos of 73 objects" },
-    { kicker: "Compose", title: "Paste, and the labels write themselves", body: "Photos from one split are pasted onto a background from the same split. Each paste position becomes a line in the YOLO label file.", stat: totalImages.toLocaleString(), statLabel: "multi-object images" },
-    { kicker: "Detect", title: "One look at the whole scene", body: "YOLOv8s, fine-tuned from COCO, reads the full image in a single pass and draws a box around every object it finds.", stat: metrics.mAP50.toFixed(3), statLabel: "test mAP@0.5" },
-    { kicker: "Identify", title: "Every box gets its Object ID", body: `Each box is assigned one of 73 Object IDs. On ${metrics.test_images} held-out test scenes the detector made ${acc.false_alarms} false alarms.`, stat: pct(acc.object_accuracy), statLabel: "objects with correct ID + box" },
+    { kicker: "Compose", title: "Grids of single-object photos", body: "Photos from one split are tiled into 2×2 to 5×5 grids of 224×224 cells. Each object's box comes from two open-vocabulary detectors, Grounding DINO and OWLv2, and is kept only where they agree.", stat: totalImages.toLocaleString(), statLabel: "multi-object grids" },
+    { kicker: "Detect", title: "One look at the whole grid", body: "YOLOv8s, fine-tuned from COCO at 1120 × 1120, reads the full image in a single pass and draws a box around every object it finds.", stat: metrics.mAP50.toFixed(3), statLabel: "test mAP@0.5" },
+    { kicker: "Identify", title: "Every box gets its Object ID", body: `Each box is assigned one of ${nDet} Object IDs. On ${metrics.test_images} held-out test grids with ${acc.objects.toLocaleString()} objects the detector made ${acc.false_alarms} false alarms.`, stat: pct(acc.object_accuracy), statLabel: "objects with correct ID + box" },
   ];
 
   return (
@@ -47,7 +46,7 @@ export default function Home() {
                 <span className="block font-serif text-[1.08em] font-normal italic tracking-[-0.01em] text-gradient">Locate them all.</span>
               </h1>
               <p className="mt-5 max-w-md text-lg leading-relaxed text-ink-2">
-                Two deep learning models trained on {(6942).toLocaleString()} photos of 73 everyday objects from our class. Pick a test image, upload a photo, or use your camera.
+                Two deep learning models trained on {(6942).toLocaleString()} photos of {classes.classifier.length} everyday objects from our class: one names a single object, the other finds up to 25 at once. Pick a test image, upload a photo, or use your camera.
               </p>
               <div className="mt-7 flex flex-wrap gap-3">
                 <a href="#demo" className="group inline-flex items-center gap-2 rounded-xl bg-ink px-4 py-2.5 text-sm font-medium text-page shadow-[0_10px_30px_var(--glow)] hover:opacity-90">
@@ -123,14 +122,14 @@ export default function Home() {
               Every student photographed one object. We fixed sizes and rotation, removed {28} duplicates, mapped the final Object IDs, and split each class 70 / 15 / 15.
             </Card>
             <Card delay={0.08} className="md:col-span-3" icon={Layers} kicker="Scenes" title={`${totalImages.toLocaleString()} multi-object images`}>
-              Photos from one split are pasted onto backgrounds from the same split, so no photo appears in two splits. Boxes are written from the paste positions.
-              <LayoutStrip />
+              Duplicates are removed before the split, so no photo appears in two splits. Each photo fills one 224×224 cell, and its box is kept only where Grounding DINO and OWLv2 agree (IoU ≥ 0.5).
+              <GridStrip />
             </Card>
             <Card delay={0} className="md:col-span-2" icon={Sparkles} kicker="Single object" title="EfficientNet-B0">
               Fine-tuned from ImageNet. Best of four CNNs at {pct(best.test_acc, 2)} test accuracy.
             </Card>
             <Card delay={0.08} className="md:col-span-2" icon={Boxes} kicker="Many objects" title="YOLOv8s">
-              Fine-tuned from COCO with a 73-class head. {pct(acc.object_accuracy)} of test objects get the right ID and box.
+              Fine-tuned from COCO with a {nDet}-class head at 1120 × 1120. {pct(acc.object_accuracy)} of test objects get the right ID and box.
             </Card>
             <Card delay={0.16} className="md:col-span-2" icon={Cpu} kicker="On device" title="ONNX in the browser">
               Both models are checked against PyTorch, then run on your GPU with WebGPU, or your CPU with WebAssembly.
@@ -155,11 +154,11 @@ export default function Home() {
                 <CountUp value={metrics.mAP50.toFixed(3)} className="tabular text-gradient text-7xl font-semibold tracking-tight" />
                 <span className="text-sm text-muted">mAP@0.5 · {metrics["mAP50-95"].toFixed(3)} at 0.5:0.95</span>
               </div>
-              <p className="mt-6 text-xs font-medium uppercase tracking-wider text-muted">Objects correct by layout</p>
+              <p className="mt-6 text-xs font-medium uppercase tracking-wider text-muted">Objects correct by grid size</p>
               <ul className="mt-3 space-y-3">
-                {layouts.map(([k, v], i) => (
+                {grids.map(([k, v], i) => (
                   <li key={k} className="grid grid-cols-[5rem_1fr_3.5rem] items-center gap-3 text-sm">
-                    <span className="text-ink-2">{LAYOUT_NAMES[k] ?? k}</span>
+                    <span className="tabular text-ink-2">{k.replace("x", "×")} · {gridShape(k).cols * gridShape(k).rows}</span>
                     <span className="h-2 overflow-hidden rounded-full bg-surface-3">
                       <Bar value={v.object_accuracy} delay={i * 0.1} className="bg-gradient-to-r from-brand to-brand-2" />
                     </span>
@@ -203,7 +202,7 @@ export default function Home() {
                 Open the demo <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               </a>
               <Link href="/objects" className="inline-flex items-center gap-2 rounded-xl border border-line bg-surface/60 px-5 py-3 text-sm font-medium hover:border-line-strong">
-                Explore the 73 objects
+                Explore the {objectIds.length} objects
               </Link>
             </div>
           </div>
@@ -231,25 +230,25 @@ function Card({ icon: Icon, kicker, title, children, className = "", delay = 0 }
   );
 }
 
-function LayoutStrip() {
-  const shapes: { name: string; rects: [number, number, number, number][] }[] = [
-    { name: "Scatter", rects: [[4, 6, 14, 14], [24, 4, 12, 12], [8, 24, 12, 12], [26, 22, 12, 14]] },
-    { name: "Grid", rects: [[3, 3, 18, 18], [21, 3, 18, 18], [3, 21, 18, 18], [21, 21, 18, 18]] },
-    { name: "Collage", rects: [[4, 5, 18, 18], [20, 8, 17, 17], [9, 21, 16, 16]] },
-    { name: "Large", rects: [[3, 3, 36, 36]] },
-  ];
+function GridStrip() {
   return (
-    <div className="mt-4 flex gap-3">
-      {shapes.map((s) => (
-        <figure key={s.name} className="text-center">
-          <svg viewBox="0 0 42 42" className="h-12 w-12 rounded-lg border border-line bg-surface-2">
-            {s.rects.map(([x, y, w, h], i) => (
-              <rect key={i} x={x} y={y} width={w} height={h} rx={1.5} fill="none" stroke={i === 0 ? "var(--brand)" : "var(--brand-2)"} strokeWidth={1.4} opacity={0.9} />
-            ))}
-          </svg>
-          <figcaption className="mt-1 text-[10px] text-muted">{s.name}</figcaption>
-        </figure>
-      ))}
+    <div className="mt-4 flex flex-wrap gap-3">
+      {GRIDS.map((g) => {
+        const { cols, rows } = gridShape(g);
+        const cell = 36 / Math.max(cols, rows);
+        const ox = 3 + (36 - cols * cell) / 2;
+        const oy = 3 + (36 - rows * cell) / 2;
+        return (
+          <figure key={g} className="text-center">
+            <svg viewBox="0 0 42 42" className="h-12 w-12 rounded-lg border border-line bg-surface-2">
+              {Array.from({ length: cols * rows }, (_, i) => (
+                <rect key={i} x={ox + (i % cols) * cell + 0.6} y={oy + Math.floor(i / cols) * cell + 0.6} width={cell - 1.2} height={cell - 1.2} rx={1} fill="none" stroke={i === 0 ? "var(--brand)" : "var(--brand-2)"} strokeWidth={0.9} opacity={0.9} />
+              ))}
+            </svg>
+            <figcaption className="tabular mt-1 text-[10px] text-muted">{g.replace("x", "×")}</figcaption>
+          </figure>
+        );
+      })}
     </div>
   );
 }

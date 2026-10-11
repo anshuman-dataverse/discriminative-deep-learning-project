@@ -2,7 +2,7 @@
 
 import { CheckCircle2, CircleAlert, ScanSearch } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { classes, samples, thumb } from "@/lib/data";
+import { classes, GRIDS, samples, thumb, type Composite, type Grid } from "@/lib/data";
 import { detect, iou, loadDetector, parseYoloLabels, type Detection } from "@/lib/detector";
 import { ImageInput, loadFromUrl, type LoadedImage } from "./image-input";
 import { ImageStage, type StageBox } from "./image-stage";
@@ -10,7 +10,6 @@ import { ModelStatus } from "./model-status";
 import { useModel } from "./use-model";
 
 type Truth = ReturnType<typeof parseYoloLabels>;
-const LAYOUTS = ["all", "scatter", "grid", "collage"] as const;
 
 export function score(dets: Detection[], truth: Truth) {
   const free = new Set(truth.map((_, i) => i));
@@ -44,7 +43,7 @@ export function DetectPanel() {
   const [busy, setBusy] = useState(false);
   const [conf, setConf] = useState(0.5);
   const [showTruth, setShowTruth] = useState(true);
-  const [layout, setLayout] = useState<(typeof LAYOUTS)[number]>("all");
+  const [grid, setGrid] = useState<Grid | "all">("all");
   const [activeSample, setActiveSample] = useState<string | null>(null);
 
   const run = useCallback(
@@ -71,11 +70,11 @@ export function DetectPanel() {
     ...shown.map((d) => ({ ...d, status: scored?.status.get(d) })),
   ];
   const correct = scored ? [...scored.status.values()].filter((s) => s === "correct").length : 0;
-  const composites = samples.composites.filter((c) => layout === "all" || c.layout === layout);
-  const preview = samples.composites.find((c) => c.layout === "collage") ?? samples.composites[0];
-  const runSample = async (c: (typeof samples.composites)[number]) => {
+  const composites = samples.composites.filter((c) => grid === "all" || c.grid === grid);
+  const preview = samples.composites.find((c) => c.grid === "3x3") ?? samples.composites[0];
+  const runSample = async (c: Composite) => {
     setActiveSample(c.id);
-    run(await loadFromUrl(c.src), parseYoloLabels(c.labels, 640, classes.detector));
+    run(await loadFromUrl(c.src), parseYoloLabels(c.labels, c.width, c.height, classes.detector));
   };
 
   return (
@@ -89,8 +88,8 @@ export function DetectPanel() {
         >
           <ImageStage
             src={img?.src ?? null}
-            width={img?.width ?? 640}
-            height={img?.height ?? 640}
+            width={img?.width ?? preview.width}
+            height={img?.height ?? preview.height}
             boxes={boxes}
             busy={busy}
             empty={
@@ -111,13 +110,14 @@ export function DetectPanel() {
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <p className="text-sm font-medium">Held-out test images</p>
             <div className="ml-auto flex rounded-lg border border-line p-0.5 text-xs">
-              {LAYOUTS.map((l) => (
+              {(["all", ...GRIDS] as const).map((g) => (
                 <button
-                  key={l}
-                  onClick={() => setLayout(l)}
-                  className={`rounded-md px-2 py-1 capitalize ${layout === l ? "bg-surface-2 font-medium text-ink" : "text-ink-2"}`}
+                  key={g}
+                  onClick={() => setGrid(g)}
+                  aria-pressed={grid === g}
+                  className={`tabular rounded-md px-2 py-1 capitalize ${grid === g ? "bg-surface-2 font-medium text-ink" : "text-ink-2"}`}
                 >
-                  {l}
+                  {g.replace("x", "×")}
                 </button>
               ))}
             </div>
@@ -128,7 +128,7 @@ export function DetectPanel() {
                 key={c.id}
                 onClick={() => runSample(c)}
                 className={`overflow-hidden rounded-md border transition ${activeSample === c.id ? "border-series-1 ring-2 ring-series-1" : "border-line hover:opacity-80"}`}
-                aria-label={`Test image ${c.id} (${c.layout})`}
+                aria-label={`Test image ${c.id} (${c.grid} grid)`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={c.src} alt="" loading="lazy" className="aspect-square w-full object-cover" />

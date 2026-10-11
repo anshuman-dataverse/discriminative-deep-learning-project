@@ -1,9 +1,9 @@
 import type { InferenceSession } from "onnxruntime-web";
 import { createSession, loadOrt, type Backend } from "./ort";
 
-export const DETECTOR_SIZE = 640;
+export const DETECTOR_SIZE = 1120;
 const IOU_NMS = 0.7;
-const MAX_DET = 50;
+const MAX_DET = 100;
 const SHOW_CONFIDENCE = 0.5;
 const SMALL_FILL = 0.6;
 
@@ -28,8 +28,8 @@ function letterbox(source: CanvasImageSource, width: number, height: number, fil
   const scale = Math.min(size / width, size / height) * fill;
   const w = Math.round(width * scale);
   const h = Math.round(height * scale);
-  const padX = (size - w) / 2;
-  const padY = (size - h) / 2;
+  const padX = Math.round((size - w) / 2);
+  const padY = Math.round((size - h) / 2);
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext("2d")!;
   ctx.fillStyle = "rgb(114,114,114)";
@@ -120,7 +120,7 @@ export async function detect(
   return { ...small, ms: full.ms + small.ms, rescaled: true };
 }
 
-export function parseYoloLabels(text: string, size: number, classes: string[]) {
+export function parseYoloLabels(text: string, width: number, height: number, classes: string[]) {
   return text
     .trim()
     .split("\n")
@@ -130,10 +130,10 @@ export function parseYoloLabels(text: string, size: number, classes: string[]) {
       return {
         classIndex: c,
         label: classes[c],
-        x1: (xc - w / 2) * size,
-        y1: (yc - h / 2) * size,
-        x2: (xc + w / 2) * size,
-        y2: (yc + h / 2) * size,
+        x1: (xc - w / 2) * width,
+        y1: (yc - h / 2) * height,
+        x2: (xc + w / 2) * width,
+        y2: (yc + h / 2) * height,
       };
     });
 }

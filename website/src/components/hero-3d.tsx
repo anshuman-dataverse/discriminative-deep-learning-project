@@ -36,11 +36,13 @@ function Boxes({ labels, active, names }: { labels: Label[]; active: boolean; na
     start.current = performance.now();
   }, [active]);
 
+  const stagger = Math.min(0.28, 2.2 / Math.max(1, labels.length));
+
   useFrame(() => {
     if (!group.current) return;
     const t = (performance.now() - start.current) / 1000;
     group.current.children.forEach((child, i) => {
-      const k = active ? THREE.MathUtils.clamp((t - 0.35 - i * 0.28) / 0.45, 0, 1) : 0;
+      const k = active ? THREE.MathUtils.clamp((t - 0.35 - i * stagger) / 0.45, 0, 1) : 0;
       const e = 1 - Math.pow(1 - k, 3);
       child.visible = e > 0.01;
       child.scale.setScalar(0.85 + 0.15 * e);
@@ -104,10 +106,10 @@ function CameraRig() {
 
 function Carousel({ names }: { names: string[] }) {
   const picks = useMemo(() => {
-    const byLayout = ["collage", "scatter", "grid", "collage", "scatter", "grid", "scatter"];
+    const byGrid = ["3x3", "2x2", "4x4", "3x3", "2x2", "4x4", "3x3"];
     const used = new Set<string>();
-    return byLayout.map((l, i) => {
-      const pool = samples.composites.filter((c) => c.layout === l && !used.has(c.id));
+    return byGrid.map((g, i) => {
+      const pool = samples.composites.filter((c) => c.grid === g && !used.has(c.id));
       const c = pool[i % Math.max(1, pool.length)] ?? samples.composites[i];
       used.add(c.id);
       return { src: c.src, labels: parseLabels(c.labels) };

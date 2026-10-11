@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useInView, useMotionValueEvent, useScroll } from "motion/react";
 import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
-import { classes, samples } from "@/lib/data";
+import { classes, gridShape, objectIds, photos, samples } from "@/lib/data";
 import { type Label, parseLabels } from "@/lib/labels";
 import { classColor } from "@/lib/colors";
 import { useCan3D } from "./three-utils";
@@ -12,20 +12,14 @@ const Story3D = dynamic(() => import("./story-3d"), { ssr: false });
 
 export type Step = { kicker: string; title: string; body: string; stat: string; statLabel: string };
 
-function overlaps(a: Label, b: Label) {
-  return a.x1 < b.x2 && b.x1 < a.x2 && a.y1 < b.y2 && b.y1 < a.y2;
-}
-
 function pickScene() {
-  const ok = samples.composites.find((c) => {
-    const ls = parseLabels(c.labels);
-    return c.layout === "scatter" && ls.length >= 4 && ls.every((a, i) => ls.every((b, j) => i === j || !overlaps(a, b)));
-  });
-  const c = ok ?? samples.composites[0];
+  const area = (l: Label) => (l.x2 - l.x1) * (l.y2 - l.y1);
+  const pool = samples.composites.filter((c) => c.grid === "3x3");
+  const c = [...pool].sort((a, b) => Math.min(...parseLabels(b.labels).map(area)) - Math.min(...parseLabels(a.labels).map(area)))[0] ?? samples.composites[0];
   const labels = parseLabels(c.labels);
   const used = new Set(labels.map((l) => classes.detector[l.c]));
-  const extras = Object.keys(samples.singles).filter((id) => !used.has(id)).filter((_, i) => i % 9 === 4).slice(0, 8).map((id) => samples.singles[id][0]);
-  return { src: c.src, labels, background: samples.backgrounds[0], extras };
+  const extras = objectIds.filter((id) => !used.has(id)).filter((_, i) => i % 9 === 4).slice(0, 8).map((id) => photos[id][0]);
+  return { src: c.src, labels, grid: gridShape(c.grid), extras };
 }
 
 const SCENE = pickScene();
@@ -90,7 +84,7 @@ function PinnedStory({ steps, scene }: { steps: Step[]; scene: typeof SCENE }) {
           </ol>
         </div>
         <div className="relative order-1 min-h-0 flex-1 lg:order-2 lg:h-full lg:[mask-image:linear-gradient(to_right,transparent,black_14%)]">
-          <Story3D progress={scrollYProgress} composite={scene.src} background={scene.background} extras={scene.extras} labels={scene.labels} names={classes.detector} active={near} />
+          <Story3D progress={scrollYProgress} composite={scene.src} grid={scene.grid} extras={scene.extras} labels={scene.labels} names={classes.detector} active={near} />
           <p className="absolute inset-x-0 bottom-3 text-center text-[11px] text-muted lg:bottom-8">Built from a real test image and its label file</p>
         </div>
       </div>
@@ -114,7 +108,7 @@ function StaticStory({ steps, scene }: { steps: Step[]; scene: typeof SCENE }) {
         </ol>
         <div className="relative overflow-hidden rounded-2xl border border-line">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={scene.src} alt="Generated multi-object test image" className="w-full" />
+          <img src={scene.src} alt="3×3 multi-object test grid" className="w-full" />
           {scene.labels.map((l, i) => (
             <span
               key={i}

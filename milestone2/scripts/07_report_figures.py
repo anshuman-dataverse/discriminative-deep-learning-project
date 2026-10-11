@@ -1,10 +1,12 @@
 """Render the console output of the pipeline as terminal-style figures for the report.
 
-Reads runs/make_multi_object.log, runs/train_yolov8s.log (+ results.csv), runs/evaluate.log and
-runs/detect.log, and writes screenshots/terminal_{generate,train,evaluate,detect}.png.
+Reads runs/label_boxes.log, runs/make_grids.log, runs/train_yolov8s.log (+ results.csv), runs/evaluate.log
+and runs/detect.log, and writes screenshots/terminal_{label,generate,train,evaluate,detect}.png. Also copies the
+Ultralytics training plot to results/training_curves.png.
 """
 import csv
 import re
+import shutil
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -47,8 +49,10 @@ def render(lines: list[str], out: Path, title: str, max_chars: int = 112):
 
 def training_lines() -> list[str]:
     log = clean((RUNS / "train_yolov8s.log").read_text(errors="ignore"))
+    last_run = max(i for i, l in enumerate(log) if l.startswith("Transferred"))
+    log = log[max(i for i, l in enumerate(log[:last_run]) if l.startswith("Ultralytics")):]
     keep = ("Ultralytics", "Overriding model.yaml", "Model summary", "Transferred", "optimizer: AdamW",
-            "Using 1200", "Starting training")
+            "Using 1000", "Starting training", "AMP")
     head = list(dict.fromkeys(l for l in log if l.startswith(keep)))
     with open(RUNS / "yolov8s" / "results.csv") as fh:
         rows = [{k.strip(): v for k, v in r.items()} for r in csv.DictReader(fh)]
@@ -67,14 +71,21 @@ def training_lines() -> list[str]:
 
 
 def main():
-    render(clean((RUNS / "make_multi_object.log").read_text()), ROOT / "screenshots" / "terminal_generate.png",
-           "python scripts/01_make_multi_object.py")
-    render(training_lines(), ROOT / "screenshots" / "terminal_train.png", "python scripts/02_train_yolo.py")
+    shutil.copy2(RUNS / "yolov8s" / "results.png", ROOT / "results" / "training_curves.png")
+    label = clean((RUNS / "label_boxes.log").read_text())
+    render(label[next(i for i, l in enumerate(label) if l.startswith("=" * 10)):],
+           ROOT / "screenshots" / "terminal_label.png", "python scripts/01_label_boxes.py")
+    render(clean((RUNS / "make_grids.log").read_text()), ROOT / "screenshots" / "terminal_generate.png",
+           "python scripts/02_make_grids.py")
+    render(training_lines(), ROOT / "screenshots" / "terminal_train.png", "python scripts/03_train_yolo.py")
     ev = clean((RUNS / "evaluate.log").read_text())
     start = next(i for i, l in enumerate(ev) if l.startswith("=" * 10))
-    render(ev[start:], ROOT / "screenshots" / "terminal_evaluate.png", "python scripts/03_evaluate_yolo.py")
-    render([l for l in clean((RUNS / "detect.log").read_text()) if not l.startswith("Annotated")],
-           ROOT / "screenshots" / "terminal_detect.png", "python scripts/04_detect.py data/multi/images/test --limit 10")
+    render(ev[start:], ROOT / "screenshots" / "terminal_evaluate.png", "python scripts/04_evaluate_yolo.py")
+    det = [l for l in clean((RUNS / "detect.log").read_text()) if not l.startswith("Annotated")]
+    images = [i for i, l in enumerate(det) if l.endswith("object(s)")]
+    summary = next(i for i, l in enumerate(det) if l.startswith("=" * 10))
+    det = det[:images[4]] + [f"... {len(images) - 4} more images ...", ""] + det[summary:] if len(images) > 4 else det
+    render(det, ROOT / "screenshots" / "terminal_detect.png", "python scripts/05_detect.py data/multi/images/test --limit 10")
 
 
 if __name__ == "__main__":

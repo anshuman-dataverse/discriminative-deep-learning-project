@@ -9,7 +9,7 @@ import { useCan3D } from "./three-utils";
 const Hero3D = dynamic(() => import("./hero-3d"), { ssr: false, loading: () => <Poster /> });
 
 function Poster() {
-  const picks = samples.composites.filter((c) => c.layout === "collage").slice(0, 3);
+  const picks = samples.composites.filter((c) => c.grid === "3x3").slice(0, 3);
   return (
     <div className="relative h-full w-full [perspective:1200px]">
       {picks.map((c, i) => (

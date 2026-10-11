@@ -1,26 +1,26 @@
 import type { Metadata } from "next";
 import { Reveal } from "@/components/motion";
 import { Figure, PageHeader, Section } from "@/components/ui";
-import { metrics, samples } from "@/lib/data";
+import { GRIDS, metrics, samples } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Method" };
 
 const STEPS = [
-  { t: "Collect", d: "Each student photographs one object: 95 object + 5 background photos, uploaded to the shared Drive." },
-  { t: "Clean", d: "Fix sizes, names and EXIF rotation; 224×224 RGB; remove near-duplicate photos." },
-  { t: "Split", d: "Stratified 70 / 15 / 15 per class. Background photos are split the same way." },
-  { t: "Compose", d: "Paste 2–6 photos from one split onto a background from that split: scatter, grid or collage." },
-  { t: "Check", d: "No photo in two splits (path + image fingerprint); every label validated." },
-  { t: "Train", d: "Fine-tune ImageNet EfficientNet-B0 (single object) and COCO YOLOv8s (multi-object)." },
-  { t: "Evaluate", d: "Score once on the held-out test split; export to ONNX for this site." },
+  { t: "Collect", d: "Each student photographs one object and uploads the photos to the shared Drive." },
+  { t: "Clean", d: "Fix sizes, names and EXIF rotation; 224×224 RGB; remove exact and near-duplicate photos before splitting." },
+  { t: "Split", d: "Stratified 70 / 15 / 15 per class. OBJ054 is excluded because its photos do not show the object." },
+  { t: "Label", d: "Grounding DINO and OWLv2 each box the object in every photo. A box is kept only when the two agree (IoU ≥ 0.5); it is their mean." },
+  { t: "Compose", d: "Concatenate photos from one split into 2×2, 3×3, 4×4, 5×4 or 5×5 grids: 4–25 distinct objects, mild colour and flip changes per photo." },
+  { t: "Train", d: "Fine-tune ImageNet EfficientNet-B0 (single object) and COCO YOLOv8s at 1120 × 1120 (multi-object)." },
+  { t: "Evaluate", d: "Score once on the held-out test grids; export to ONNX for this site." },
 ];
 
 const HYPER = [
-  ["Starting weights", "yolov8s.pt (COCO-pretrained, 80 → 73 classes)"],
+  ["Starting weights", "yolov8s.pt (COCO-pretrained, 80 → 72 classes)"],
   ["Parameters", "11.2 M"],
-  ["Input size", "640 × 640"],
-  ["Epochs", "60 (early-stopping patience 15)"],
-  ["Batch size", "16"],
+  ["Input size", "1120 × 1120 (largest grid, 5×5, at full resolution)"],
+  ["Epochs", "60 (early-stopping patience 15), Colab T4 GPU"],
+  ["Batch size", "8"],
   ["Optimizer", "AdamW, lr 1.3e-4 (auto), 3 warm-up epochs"],
   ["Loss weights", "box 7.5 · class 0.5 · DFL 1.5"],
   ["Augmentation", "mosaic (off last 10 epochs), HSV (h 0.015, s 0.7, v 0.4), flip 0.5, scale 0.5, translate 0.1, erasing 0.4"],
@@ -29,8 +29,8 @@ const HYPER = [
 
 export default function MethodPage() {
   const d = metrics.dataset;
-  const leak = d.leakage_check as Record<string, number>;
-  const example = samples.composites.find((c) => c.layout === "collage") ?? samples.composites[0];
+  const leak = d.leakage_check;
+  const example = samples.composites.find((c) => c.grid === "3x3") ?? samples.composites[0];
   return (
     <div className="mx-auto max-w-6xl px-4 sm:px-6">
       <PageHeader kicker="How it was built" title={<>From photos to a <span className="font-serif font-normal italic text-gradient">live detector</span></>} />
@@ -50,9 +50,9 @@ export default function MethodPage() {
 
       <Section title="Multi-object dataset">
         <div className="grid gap-6 lg:grid-cols-2">
-          <Figure title="Example test image and its YOLO label file" caption="One line per object: class index, box centre x, centre y, width, height (normalized 0–1). Labels are written automatically from where each photo is pasted.">
+          <Figure title="Example test image and its YOLO label file" caption="One line per object: class index, box centre x, centre y, width, height (normalized 0–1 to the image size). Each box is the object's cross-checked box, moved to its cell in the grid.">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={example.src} alt="Generated multi-object test image" className="w-full rounded-md" />
+            <img src={example.src} alt="3×3 multi-object test grid" className="w-full rounded-md" />
             <pre className="mt-3 overflow-x-auto rounded-md bg-surface-2 p-3 text-xs leading-relaxed">{example.labels.trim()}</pre>
           </Figure>
           <div className="space-y-6">
@@ -73,14 +73,14 @@ export default function MethodPage() {
                 </tbody>
               </table>
               <p className="mt-3 text-xs text-ink-2">
-                Layouts: {Object.entries(d.layouts).map(([k, v]) => `${k} ${v}`).join(" · ")}
+                Grids per split: {GRIDS.map((g) => `${g.replace("x", "×")}: ${d.grids.train[g] ?? 0} / ${d.grids.val[g] ?? 0} / ${d.grids.test[g] ?? 0}`).join(" · ")} (train / val / test)
               </p>
             </Figure>
-            <Figure title="Split and label checks" caption="Run by scripts/01_make_multi_object.py every time the dataset is generated; it stops with an error if any check fails.">
+            <Figure title="Split and label checks" caption="Run by scripts/02_make_grids.py every time the dataset is generated; it stops with an error if any check fails.">
               <ul className="space-y-1.5 text-sm">
                 <li className="flex justify-between"><span>Source photos in more than one split (path)</span><span className="tabular font-semibold">{leak["source_paths_in_2+_splits"]}</span></li>
                 <li className="flex justify-between"><span>Source photos in more than one split (fingerprint)</span><span className="tabular font-semibold">{leak["source_fingerprints_in_2+_splits"]}</span></li>
-                <li className="flex justify-between"><span>Background photos in more than one split</span><span className="tabular font-semibold">{leak["background_fingerprints_in_2+_splits"]}</span></li>
+                <li className="flex justify-between"><span>Unique source photos (train / val / test)</span><span className="tabular font-semibold">{["train", "val", "test"].map((k) => leak.unique_source_images[k]?.toLocaleString()).join(" / ")}</span></li>
                 <li className="flex justify-between"><span>Labels checked / invalid</span><span className="tabular font-semibold">{d.label_validation.boxes_checked.toLocaleString()} / {d.label_validation.invalid}</span></li>
               </ul>
             </Figure>

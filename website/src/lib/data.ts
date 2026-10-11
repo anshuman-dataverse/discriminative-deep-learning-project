@@ -26,16 +26,20 @@ export type Metrics = {
   inference_ms_per_image: number;
   best_f1: { confidence: number; f1: number } | null;
   "at_conf_0.5": LevelSummary;
-  by_layout: Record<string, LevelSummary>;
+  by_grid: Record<string, LevelSummary>;
   class_tiers: Record<string, { count: number; mean_AP50: number | null; classes: string[] }>;
   per_class: { object_id: string; precision: number; recall: number; AP50: number; "AP50-95": number }[];
   errors: { wrong_id_pairs: Record<string, number>; missed_by_class: Record<string, number> };
   dataset: {
     images: Record<string, number>;
     objects: Record<string, number>;
-    layouts: Record<string, number>;
+    grids: Record<string, Record<string, number>>;
     min_instances_per_class: Record<string, number>;
-    leakage_check: Record<string, number | Record<string, number>>;
+    leakage_check: {
+      "source_paths_in_2+_splits": number;
+      "source_fingerprints_in_2+_splits": number;
+      unique_source_images: Record<string, number>;
+    };
     label_validation: { images_checked: number; boxes_checked: number; invalid: number };
   };
 };
@@ -58,18 +62,29 @@ export type M1 = {
   per_class_f1: Record<string, number>;
 };
 
-export type Composite = { id: string; layout: string; src: string; labels: string };
+export type Grid = "2x2" | "3x3" | "4x4" | "5x4" | "5x5";
+export type Composite = { id: string; grid: Grid; width: number; height: number; src: string; labels: string };
+export type Single = { src: string; box: [number, number, number, number] };
 
 export const classes = classesJson as { detector: string[]; classifier: string[] };
 export const metrics = metricsJson as unknown as Metrics;
 export const training = trainingJson as TrainingRow[];
 export const m1 = m1Json as unknown as M1;
-export const samples = samplesJson as {
+export const samples = samplesJson as unknown as {
   composites: Composite[];
-  singles: Record<string, string[]>;
-  backgrounds: string[];
+  singles: Record<string, Single[]>;
+};
+
+export const GRIDS: Grid[] = ["2x2", "3x3", "4x4", "5x4", "5x5"];
+export const TILE = 224;
+export const gridShape = (g: Grid) => {
+  const [cols, rows] = g.split("x").map(Number);
+  return { cols, rows };
 };
 
 export const objectIds = Object.keys(samples.singles);
-export const thumb = (id: string) => samples.singles[id]?.[0];
+export const photos: Record<string, string[]> = Object.fromEntries(
+  Object.entries(samples.singles).map(([id, s]) => [id, s.map((x) => x.src)]),
+);
+export const thumb = (id: string) => photos[id]?.[0];
 export const pct = (x: number, digits = 1) => `${(x * 100).toFixed(digits)}%`;

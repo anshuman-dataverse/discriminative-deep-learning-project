@@ -22,6 +22,7 @@ type Card = {
   color: THREE.Color;
   w: number;
   h: number;
+  box: { x: number; y: number; w: number; h: number };
   home: THREE.Vector3;
   start: THREE.Vector3;
   spin: THREE.Euler;
@@ -78,16 +79,18 @@ function Extras({ progress, srcs }: { progress: MotionValue<number>; srcs: strin
   );
 }
 
-function Scene({ progress, composite, background, extras, labels, names, colors }: {
+type GridShape = { cols: number; rows: number };
+
+function Scene({ progress, composite, grid, extras, labels, names, colors }: {
   progress: MotionValue<number>;
   composite: string;
-  background: string;
+  grid: GridShape;
   extras: string[];
   labels: Label[];
   names: string[];
   colors: ReturnType<typeof useThemeColors>;
 }) {
-  const [compTex, bgTex] = useTexture([composite, background], (t) => {
+  const compTex = useTexture(composite, (t) => {
     (Array.isArray(t) ? t : [t]).forEach((x) => (x.colorSpace = THREE.SRGBColorSpace));
   });
   const viewport = useThree((s) => s.viewport);
@@ -95,14 +98,21 @@ function Scene({ progress, composite, background, extras, labels, names, colors 
 
   const cards = useMemo<Card[]>(() => {
     const n = labels.length;
+    const { cols, rows } = grid;
     return labels.map((l, i) => {
-      const w = (l.x2 - l.x1) * SIZE;
-      const h = (l.y2 - l.y1) * SIZE;
-      const cx = ((l.x1 + l.x2) / 2 - 0.5) * SIZE;
-      const cy = (0.5 - (l.y1 + l.y2) / 2) * SIZE;
+      const col = Math.min(cols - 1, Math.floor(((l.x1 + l.x2) / 2) * cols));
+      const row = Math.min(rows - 1, Math.floor(((l.y1 + l.y2) / 2) * rows));
+      const tx = col / cols, ty = row / rows;
+      const w = SIZE / cols;
+      const h = SIZE / rows;
+      const cx = (tx + 0.5 / cols - 0.5) * SIZE;
+      const cy = (0.5 - ty - 0.5 / rows) * SIZE;
+      const bw = (l.x2 - l.x1) * SIZE;
+      const bh = (l.y2 - l.y1) * SIZE;
+      const box = { x: ((l.x1 + l.x2) / 2 - tx - 0.5 / cols) * SIZE, y: (ty + 0.5 / rows - (l.y1 + l.y2) / 2) * SIZE, w: bw, h: bh };
       const tex = compTex.clone();
-      tex.repeat.set(l.x2 - l.x1, l.y2 - l.y1);
-      tex.offset.set(l.x1, 1 - l.y2);
+      tex.repeat.set(1 / cols, 1 / rows);
+      tex.offset.set(tx, 1 - ty - 1 / rows);
       tex.needsUpdate = true;
       const a = (i / Math.max(1, n - 1) - 0.5) * Math.PI * 0.9;
       const color = hue(l.c);
@@ -111,16 +121,20 @@ function Scene({ progress, composite, background, extras, labels, names, colors 
         color,
         w,
         h,
+        box,
         home: new THREE.Vector3(cx, cy, 0.01),
         start: new THREE.Vector3(Math.sin(a) * 2.5, (i % 2 ? 0.85 : -0.75) + Math.cos(i * 1.7) * 0.25, 1.3 - Math.abs(Math.sin(a)) * 1.2),
         spin: new THREE.Euler(0.25 * Math.cos(i * 2.1), -a * 0.55, 0.18 * Math.sin(i * 1.3)),
         tex,
         tag: tagTexture(names[l.c] ?? `#${l.c}`, color),
-        frame: [[-w / 2, h / 2, 0], [w / 2, h / 2, 0], [w / 2, -h / 2, 0], [-w / 2, -h / 2, 0], [-w / 2, h / 2, 0]],
+        frame: [[-bw / 2, bh / 2, 0], [bw / 2, bh / 2, 0], [bw / 2, -bh / 2, 0], [-bw / 2, -bh / 2, 0], [-bw / 2, bh / 2, 0]],
         scanAt: SCAN_A + (SCAN_B - SCAN_A) * clamp01(((l.y1 + l.y2) / 2 - 0.02)),
       };
     });
-  }, [labels, names, compTex]);
+  }, [labels, names, compTex, grid]);
+
+  const fly = Math.min(0.045, 0.2 / Math.max(1, cards.length));
+  const tagStep = Math.min(0.025, 0.1 / Math.max(1, cards.length));
 
   const rig = useRef<THREE.Group>(null);
   const board = useRef<THREE.Group>(null);
@@ -149,7 +163,7 @@ function Scene({ progress, composite, background, extras, labels, names, colors 
     cards.forEach((c, i) => {
       const g = cardRefs.current[i];
       if (!g) return;
-      const k = easeInOut(seg(p, 0.2 + i * 0.045, 0.42 + i * 0.045));
+      const k = easeInOut(seg(p, 0.2 + i * fly, 0.36 + i * fly));
       const bob = (1 - k) * 0.12;
       g.position.lerpVectors(c.start, c.home, k);
       g.position.y += Math.sin(t * 0.9 + i * 1.3) * bob;
@@ -168,9 +182,9 @@ function Scene({ progress, composite, background, extras, labels, names, colors 
       }
       const tag = tagRefs.current[i];
       if (tag) {
-        const tk = ease(seg(p, 0.72 + i * 0.025, 0.78 + i * 0.025));
+        const tk = ease(seg(p, 0.72 + i * tagStep, 0.78 + i * tagStep));
         fade(tag, tk);
-        tag.position.y = c.h / 2 + 0.11 + (1 - tk) * 0.12;
+        tag.position.y = c.box.y + c.box.h / 2 + 0.11 + (1 - tk) * 0.12;
       }
     });
 
@@ -204,7 +218,7 @@ function Scene({ progress, composite, background, extras, labels, names, colors 
         </mesh>
         <mesh ref={bg}>
           <planeGeometry args={[SIZE, SIZE]} />
-          <meshBasicMaterial map={bgTex} transparent opacity={0} toneMapped={false} />
+          <meshBasicMaterial color={colors.surface} transparent opacity={0} toneMapped={false} />
         </mesh>
 
         {cards.map((c, i) => (
@@ -217,14 +231,14 @@ function Scene({ progress, composite, background, extras, labels, names, colors 
               <planeGeometry args={[c.w, c.h]} />
               <meshBasicMaterial map={c.tex} toneMapped={false} />
             </mesh>
-            <group ref={(el) => { boxRefs.current[i] = el; }} position={[0, 0, 0.006]}>
+            <group ref={(el) => { boxRefs.current[i] = el; }} position={[c.box.x, c.box.y, 0.006]}>
               <Line points={c.frame} color={c.color} lineWidth={2.6} transparent />
               <mesh position={[0, 0, -0.001]}>
-                <planeGeometry args={[c.w, c.h]} />
+                <planeGeometry args={[c.box.w, c.box.h]} />
                 <meshBasicMaterial color={c.color} transparent opacity={0} userData={{ base: 0.12 }} toneMapped={false} />
               </mesh>
             </group>
-            <mesh ref={(el) => { tagRefs.current[i] = el; }} position={[-c.w / 2 + 0.3, c.h / 2 + 0.11, 0.008]}>
+            <mesh ref={(el) => { tagRefs.current[i] = el; }} position={[c.box.x - c.box.w / 2 + 0.3, c.box.y + c.box.h / 2 + 0.11, 0.008]}>
               <planeGeometry args={[0.6, 0.15]} />
               <meshBasicMaterial map={c.tag} transparent opacity={0} toneMapped={false} />
             </mesh>
@@ -268,7 +282,7 @@ function scanGradient() {
 export default function Story3D(props: {
   progress: MotionValue<number>;
   composite: string;
-  background: string;
+  grid: GridShape;
   extras: string[];
   labels: Label[];
   names: string[];
