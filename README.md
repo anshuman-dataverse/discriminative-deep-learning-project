@@ -16,7 +16,7 @@ A deep learning system that (1) identifies the object in a single-object image b
 |---|---|---|---|
 | [Milestone 1](milestone1/) | Single-object identification with CNNs | Done | [PDF](milestone1/report/Milestone1_Report.pdf) |
 | [Milestone 2](milestone2/) | Multi-object detection and localization with YOLOv8 | Done | [PDF](milestone2/report/Milestone2_Report.pdf) |
-| [Milestone 3](website/) | Live demo: identify a single object; detect, identify and locate all objects | Live | [ie7615-group1-object-detection.vercel.app](https://ie7615-group1-object-detection.vercel.app) |
+| [Milestone 3](milestone3/) | Live demo: identify a single object; detect, identify and locate all objects | Done | [Notebook](milestone3/milestone3_demo.ipynb), [website](https://ie7615-group1-object-detection.vercel.app) |
 
 ---
 
@@ -148,7 +148,22 @@ The image data is not in the repository. The Colab notebook downloads the shared
 
 ---
 
-## Milestone 3: Live demo website
+## Milestone 3: Live demonstration
+
+Both trained models are demonstrated in two ways: a Jupyter notebook and a website.
+
+| Task | Model | Output |
+|---|---|---|
+| Single-object image | EfficientNet-B0 (Milestone 1), 73 Object IDs | Object ID, confidence and top-5 |
+| Multi-object image | YOLOv8s (Milestone 2), 72 Object IDs | Object ID, confidence and box (x1, y1, x2, y2) of every object |
+
+### Notebook
+
+[milestone3_demo.ipynb](milestone3/milestone3_demo.ipynb) loads both models, runs them on the sample images in `milestone3/samples/` (3 single-object photos and 5 multi-object grids from the held-out test split, 2×2 to 5×5), and has an upload cell for any new image, with a confidence threshold for detection.
+
+On the sample images the classifier names all 3 objects correctly, and the detector finds 4, 9, 16, 20 and 25 objects in the five grids.
+
+### Website
 
 **https://ie7615-group1-object-detection.vercel.app**
 
@@ -159,10 +174,23 @@ Both trained models run in the visitor's browser with ONNX Runtime Web (WebGPU o
 - **Build a grid:** choose a grid size and objects; the browser builds a grid like the training data and runs the detector.
 - **Metrics, Method, Objects:** results of both milestones, the pipeline, and all 73 objects (the detector covers 72; OBJ054 is excluded from Milestone 2).
 
-`milestone2/scripts/06_export_web.py` exports both models to ONNX (checked against PyTorch on test images) and the results into `website/`. To run the site locally:
+`milestone2/scripts/06_export_web.py` exports both models to ONNX (checked against PyTorch on test images) and the results into `milestone3/website/`.
+
+### Structure
+
+```
+milestone3/
+├── milestone3_demo.ipynb        live demo of both models, with an upload cell
+├── samples/
+│   ├── single/                  single-object test photos
+│   └── multi/                   multi-object test grids (2×2 to 5×5)
+└── website/                     Next.js demo site (both models in the browser via ONNX)
+```
+
+To run the site locally:
 
 ```bash
-cd website
+cd milestone3/website
 npm install
 npm run dev        # http://localhost:3000
 ```

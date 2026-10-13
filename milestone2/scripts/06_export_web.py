@@ -1,4 +1,4 @@
-"""Export both models to ONNX and the results/sample images for the demo website (../website).
+"""Export both models to ONNX and the results/sample images for the demo website (../milestone3/website).
 
 The detector (YOLOv8s) and the classifier (milestone 1 EfficientNet-B0) are exported to ONNX and
 checked against PyTorch on test images before anything is written. Then metrics, training history,
@@ -45,7 +45,7 @@ def letterbox(img: Image.Image, size=1120):
 
 
 def onnx_detect(sess, img, conf=0.25, iou_thr=0.7):
-    """The same decode + class-agnostic NMS the website runs (website/src/lib/detector.ts)."""
+    """The same decode + class-agnostic NMS the website runs (milestone3/website/src/lib/detector.ts)."""
     x, s, px, py, _ = letterbox(img)
     out = sess.run(None, {sess.get_inputs()[0].name: x})[0][0]
     scores = out[4:]
@@ -121,7 +121,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--detector", type=Path, default=ROOT / "models" / "yolov8s_best.pt")
     ap.add_argument("--classifier", type=Path, default=M1 / "models" / "EfficientNetB0.pt")
-    ap.add_argument("--site", type=Path, default=ROOT.parent / "website")
+    ap.add_argument("--site", type=Path, default=ROOT.parent / "milestone3" / "website")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
     rng = random.Random(args.seed)
