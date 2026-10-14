@@ -15,6 +15,7 @@ export function loadFromUrl(src: string): Promise<LoadedImage> {
 }
 
 export function ImageInput({ onImage, children }: { onImage: (img: LoadedImage) => void; children: React.ReactNode }) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [camera, setCamera] = useState<MediaStream | null>(null);
@@ -35,7 +36,10 @@ export function ImageInput({ onImage, children }: { onImage: (img: LoadedImage) 
   );
 
   useEffect(() => {
-    const onPaste = (e: ClipboardEvent) => fromFile(Array.from(e.clipboardData?.files ?? [])[0]);
+    const onPaste = (e: ClipboardEvent) => {
+      if (!rootRef.current || rootRef.current.offsetParent === null) return;
+      fromFile(Array.from(e.clipboardData?.files ?? [])[0]);
+    };
     window.addEventListener("paste", onPaste);
     return () => window.removeEventListener("paste", onPaste);
   }, [fromFile]);
@@ -67,6 +71,7 @@ export function ImageInput({ onImage, children }: { onImage: (img: LoadedImage) 
 
   return (
     <div
+      ref={rootRef}
       onDragOver={(e) => {
         e.preventDefault();
         setDragging(true);
@@ -107,7 +112,16 @@ export function ImageInput({ onImage, children }: { onImage: (img: LoadedImage) 
           <Camera className="h-4 w-4" /> Use camera
         </button>
         <span className="text-xs text-muted">or drop / paste an image</span>
-        <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => fromFile(e.target.files?.[0])} />
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => {
+            fromFile(e.target.files?.[0]);
+            e.target.value = "";
+          }}
+        />
       </div>
       {error && <p className="mt-2 text-xs text-critical">{error}</p>}
     </div>

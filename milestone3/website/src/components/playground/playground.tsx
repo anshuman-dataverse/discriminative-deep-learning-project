@@ -1,8 +1,9 @@
 "use client";
 
 import { Layers, ScanSearch, Tag } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DetectPanel } from "./detect-panel";
+import type { LoadedImage } from "./image-input";
 import { IdentifyPanel } from "./identify-panel";
 import { ScenePanel } from "./scene-panel";
 
@@ -14,7 +15,12 @@ const TABS = [
 
 export function Playground() {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("detect");
+  const detectRun = useRef<((img: LoadedImage) => void) | null>(null);
   const current = TABS.find((t) => t.id === tab)!;
+  const sendToDetect = (img: LoadedImage) => {
+    setTab("detect");
+    detectRun.current?.(img);
+  };
   return (
     <div className="relative">
       <div className="pointer-events-none absolute inset-x-0 -top-10 bottom-0 bg-[radial-gradient(50%_40%_at_50%_0%,var(--glow),transparent_70%)]" />
@@ -48,8 +54,8 @@ export function Playground() {
           <span className="hidden w-[180px] text-right text-xs text-muted md:block">{current.sub}</span>
         </div>
         <div className="p-4 sm:p-6">
-          <div hidden={tab !== "detect"}><DetectPanel /></div>
-          <div hidden={tab !== "identify"}><IdentifyPanel /></div>
+          <div hidden={tab !== "detect"}><DetectPanel runRef={detectRun} /></div>
+          <div hidden={tab !== "identify"}><IdentifyPanel onDetect={sendToDetect} /></div>
           <div hidden={tab !== "scene"}><ScenePanel /></div>
         </div>
       </section>

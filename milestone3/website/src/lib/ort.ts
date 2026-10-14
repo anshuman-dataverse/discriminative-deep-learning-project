@@ -39,6 +39,31 @@ export function preferredBackend(): Backend {
   return "gpu" in navigator ? "webgpu" : "wasm";
 }
 
+const GPU_TIMEOUT_MS = 20000;
+
+function within<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error("timed out")), ms);
+    p.then(
+      (v) => {
+        clearTimeout(id);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(id);
+        reject(e);
+      },
+    );
+  });
+}
+
+async function open(ort: Ort, bytes: Uint8Array, backend: Backend, inputShape: number[]) {
+  const session = await ort.InferenceSession.create(bytes, { executionProviders: [backend] });
+  const zeros = new ort.Tensor("float32", new Float32Array(inputShape.reduce((a, b) => a * b, 1)), inputShape);
+  await session.run({ [session.inputNames[0]]: zeros });
+  return session;
+}
+
 export async function createSession(
   url: string,
   inputShape: number[],
@@ -46,19 +71,14 @@ export async function createSession(
 ): Promise<{ session: OrtTypes.InferenceSession; backend: Backend }> {
   const ort = await loadOrt();
   const bytes = await fetchWithProgress(url, onProgress);
-  const wanted = preferredBackend();
-  let session: OrtTypes.InferenceSession;
-  let backend: Backend = wanted;
-  try {
-    session = await ort.InferenceSession.create(bytes, { executionProviders: [wanted] });
-  } catch (err) {
-    if (wanted === "wasm") throw err;
-    session = await ort.InferenceSession.create(bytes, { executionProviders: ["wasm"] });
-    backend = "wasm";
+  if (preferredBackend() === "webgpu") {
+    try {
+      return { session: await within(open(ort, bytes, "webgpu", inputShape), GPU_TIMEOUT_MS), backend: "webgpu" };
+    } catch {
+      onProgress?.(1);
+    }
   }
-  const zeros = new ort.Tensor("float32", new Float32Array(inputShape.reduce((a, b) => a * b, 1)), inputShape);
-  await session.run({ [session.inputNames[0]]: zeros });
-  return { session, backend };
+  return { session: await open(ort, bytes, "wasm", inputShape), backend: "wasm" };
 }
 
 async function fetchWithProgress(url: string, onProgress?: (f: number) => void): Promise<Uint8Array> {

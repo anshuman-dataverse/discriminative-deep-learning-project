@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, CircleAlert, ScanSearch } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type RefObject } from "react";
 import { classes, GRIDS, samples, thumb, type Composite, type Grid } from "@/lib/data";
 import { detect, iou, loadDetector, parseYoloLabels, type Detection } from "@/lib/detector";
 import { ImageInput, loadFromUrl, type LoadedImage } from "./image-input";
@@ -34,7 +34,7 @@ export function score(dets: Detection[], truth: Truth) {
   return { status, missed: [...free].map((j) => truth[j]) };
 }
 
-export function DetectPanel() {
+export function DetectPanel({ runRef }: { runRef: RefObject<((img: LoadedImage) => void) | null> }) {
   const model = useModel(loadDetector);
   const [img, setImg] = useState<LoadedImage | null>(null);
   const [truth, setTruth] = useState<Truth | null>(null);
@@ -62,6 +62,13 @@ export function DetectPanel() {
     },
     [model],
   );
+
+  useEffect(() => {
+    runRef.current = (input) => {
+      setActiveSample(null);
+      run(input, null);
+    };
+  }, [run, runRef]);
 
   const shown = useMemo(() => all.filter((d) => d.confidence >= conf), [all, conf]);
   const scored = useMemo(() => (truth ? score(shown, truth) : null), [shown, truth]);

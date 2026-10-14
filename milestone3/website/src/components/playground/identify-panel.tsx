@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, CircleAlert, Shuffle, Tag } from "lucide-react";
+import { CheckCircle2, CircleAlert, ScanSearch, Shuffle, Tag } from "lucide-react";
 import { useCallback, useState } from "react";
 import { classify, loadClassifier, type Prediction } from "@/lib/classifier";
 import { classes, objectIds, photos, thumb } from "@/lib/data";
@@ -20,7 +20,15 @@ function pickSingles(n: number, random = true) {
   });
 }
 
-export function IdentifyPanel() {
+export function gridShape(width: number, height: number): string | null {
+  const cols = width / 224;
+  const rows = height / 224;
+  const near = (v: number) => Math.abs(v - Math.round(v)) < 0.02;
+  if (!near(cols) || !near(rows) || Math.round(cols) * Math.round(rows) < 4) return null;
+  return `${Math.round(cols)}×${Math.round(rows)}`;
+}
+
+export function IdentifyPanel({ onDetect }: { onDetect: (img: LoadedImage) => void }) {
   const model = useModel(loadClassifier);
   const [img, setImg] = useState<LoadedImage | null>(null);
   const [truth, setTruth] = useState<string | null>(null);
@@ -28,12 +36,16 @@ export function IdentifyPanel() {
   const [ms, setMs] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [gallery, setGallery] = useState(() => pickSingles(16, false));
+  const [grid, setGrid] = useState<string | null>(null);
 
   const run = useCallback(
-    async (input: LoadedImage, gt: string | null) => {
+    async (input: LoadedImage, gt: string | null, force = false) => {
       setImg(input);
       setTruth(gt);
       setTop([]);
+      const shape = gt || force ? null : gridShape(input.width, input.height);
+      setGrid(shape);
+      if (shape) return;
       setBusy(true);
       if (await model.ensure()) {
         const r = await classify(input.image, classes.classifier, 5);
@@ -84,6 +96,28 @@ export function IdentifyPanel() {
 
       <div className="flex flex-col gap-4">
         <ModelStatus name="EfficientNet-B0 classifier" size="16 MB" state={model.state} />
+        {grid && img && (
+          <div className="rounded-xl border border-series-1/50 bg-surface p-4">
+            <p className="text-sm font-medium">This looks like a {grid} multi-object grid</p>
+            <p className="mt-1 text-sm text-ink-2">
+              Identify gives one Object ID for the whole image. Detect finds, identifies and locates every object in it.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                onClick={() => onDetect(img)}
+                className="inline-flex items-center gap-2 rounded-lg bg-ink px-3 py-2 text-sm font-medium text-page hover:opacity-90"
+              >
+                <ScanSearch className="h-4 w-4" /> Detect all objects
+              </button>
+              <button
+                onClick={() => run(img, null, true)}
+                className="rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium hover:bg-surface-2"
+              >
+                Identify anyway
+              </button>
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-3 gap-2">
           <Stat label="Prediction" value={best ? best.label : "–"} />
           <Stat label="Confidence" value={best ? `${(best.probability * 100).toFixed(1)}%` : "–"} />

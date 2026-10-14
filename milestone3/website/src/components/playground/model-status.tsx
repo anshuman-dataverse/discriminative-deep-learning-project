@@ -1,11 +1,27 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import type { ModelState } from "./use-model";
 
+function useSeconds(startedAt: number | undefined) {
+  const [now, setNow] = useState(0);
+  useEffect(() => {
+    if (!startedAt) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [startedAt]);
+  return startedAt && now ? Math.max(0, Math.floor((now - startedAt) / 1000)) : 0;
+}
+
 export function ModelStatus({ name, size, state }: { name: string; size: string; state: ModelState }) {
+  const seconds = useSeconds(state.status === "loading" ? state.startedAt : undefined);
   let text: string;
   let dot = "bg-muted";
   if (state.status === "idle") text = `${name} loads on first use (${size})`;
   else if (state.status === "loading") {
-    text = state.progress < 1 ? `Downloading ${name}… ${Math.round(state.progress * 100)}%` : `Starting ${name}…`;
+    text = state.progress < 1
+      ? `Downloading ${name}… ${Math.round(state.progress * 100)}%`
+      : `Starting ${name}… ${seconds} s${seconds >= 20 ? " (switching to CPU)" : ""}`;
     dot = "bg-series-1 animate-pulse";
   } else if (state.status === "ready") {
     text = `${name} ready · ${state.backend === "webgpu" ? "WebGPU (GPU)" : "WebAssembly (CPU)"}`;
